@@ -214,8 +214,8 @@
                 <div class="col"></div>
                 
                 <div class="col" style="border:none; text-align: left;">
-                    <input type="checkbox" id="Money Order" name="Money Order" value="Money Order">
-                    <label for="Money Order"> Money Order</label>
+                    <input type="checkbox" id="MoneyOrder" name="MoneyOrder" value="MoneyOrder">
+                    <label for="MoneyOrder"> Money Order</label>
                 </div>
                 <div class="col" style="border:none;"></div>
                 <div class="col"></div>
@@ -251,18 +251,57 @@
     </footer>
 
     <!-- Modal -->
-<div class="modal fade" id="particularsModal" tabindex="-1">
-  <div class="modal-dialog">
+<div class="modal fade" id="particularsModal" tabindex="-1" style="float: center;">
+  <div class="modal-dialog" style="max-width: 1000px; overflow-y: auto;">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="modalContent"></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        
+        <div class="row row-cols-3" style="text-align: center; font-weight: bold;">
+            <div class="col">Nature of Collection</div>
+            <div class="col"></div>
+            <div class="col">Amount</div>
+        </div>
+        <div class="row row-cols-3">
+            <div class="col" style="padding: 10px;">Settlement of cash advance</div>
+            <div class="col"></div>
+            <div class="col" style="text-align: left; padding: 10px;">P <input type="text" name="" style="width: 90%; text-align: right;"></div>
+        </div>
+        <div class="row row-cols-3">
+            <div class="col" style="padding: 10px;">Cash Advance</div>
+            <div class="col" style="padding: 10px;"><input type="text" name="" style="width: 100%; text-align: center;"></div>
+            <div class="col"></div>
+        </div>
+        <div class="row row-cols-3">
+            <div class="col">RCD</div>
+            <div class="col"></div>
+            <div class="col"></div>
+        </div>
+        <div class="row row-cols-3">
+            <div class="col" style="padding: 10px;"><input type="text" name="" style="width: 100%; text-align: center;"></div>
+            <div class="col"></div>
+            <div class="col"></div>
+        </div>
+        <div class="row row-cols-3">
+            <div class="col"></div>
+            <div class="col" style="padding: 10px; text-align: center;">(Auto Computation of Total RCDs)</div>
+            <div class="col"></div>
+        </div>
+        <div class="row row-cols-3">
+            <div class="col" style="padding: 10px;">Cash Refund</div>
+            <div class="col" style="padding: 10px; text-align: center;">(Auto Computation of Cash Advance and Total RCDs)</div>
+            <div class="col"></div>
+        </div>
+        <div class="row row-cols-3">
+            <div class="col" style="padding: 10px;"><b>TOTAL</b></div>
+            <div class="col"></div>
+            <div class="col" style="text-align: left; padding: 10px;">P <input type="text" placeholder="total" disabled style="width: 90%; text-align: right;"></div>
+        </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Enter</button>
       </div>
     </div>
   </div>
@@ -289,6 +328,91 @@ document.getElementById("particulars").addEventListener("change", function() {
     }
 
 });
+</script>
+
+
+<!-- Check Modal -->
+<div class="modal fade" id="checkModal">
+  <div class="modal-dialog" style="max-width: 900px; overflow-y: auto;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Check Information</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row row-cols-3">
+            <div class="col">Drawee Bank</div>
+            <div class="col">Number</div>
+            <div class="col">Date</div>
+        </div>
+        <div class="row row-cols-3">
+            <div class="col" style="padding: 10px;"><input type="text" style="width: 100%; text-align: center;"></div>
+            <div class="col" style="padding: 10px;"><input type="text" style="width: 100%; text-align: center;"></div>
+            <div class="col" style="padding: 10px;"><input type="text" style="width: 100%; text-align: center;"></div>
+        </div>
+      </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Enter</button>
+        </div>
+    </div>
+  </div>
+</div>
+
+<!-- Money Order Modal -->
+<div class="modal fade" id="moneyOrderModal">
+  <div class="modal-dialog" style="max-width: 900px; overflow-y: auto;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Money Order Information</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row row-cols-2">
+            <div class="col">Number</div>
+            <div class="col">Date</div>
+        </div>
+        <div class="row row-cols-2">
+            <div class="col" style="padding: 10px;"><input type="text" style="width: 100%; text-align: center;"></div>
+            <div class="col" style="padding: 10px;"><input type="text" style="width: 100%; text-align: center;"></div>
+        </div>
+      </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Enter</button>
+        </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    const checkboxes = document.querySelectorAll(
+        '#Cash, #Check, #MoneyOrder'
+    );
+
+    checkboxes.forEach(box => {
+        box.addEventListener('change', function () {
+
+            // Uncheck others
+            checkboxes.forEach(cb => {
+                if (cb !== this) cb.checked = false;
+            });
+
+            if (this.checked) {
+                if (this.id === "Check") {
+                    const checkModal = new bootstrap.Modal(
+                        document.getElementById('checkModal')
+                    );
+                    checkModal.show();
+                }
+
+                if (this.id === "MoneyOrder") {
+                    const moneyModal = new bootstrap.Modal(
+                        document.getElementById('moneyOrderModal')
+                    );
+                    moneyModal.show();
+                }
+            }
+        });
+    });
 </script>
 </body>
 </html>
