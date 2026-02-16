@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Login Page</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+    <link rel="icon" href="{{ asset('images/icon.png') }}" type="image/png">
     <style>
         * {
             margin: 0;
@@ -23,15 +23,39 @@
 
         .login-container {
             background: white;
-            padding: 40px;
-            width: 400px;
+            padding: 48px;
+            width: 420px;
             border-radius: 10px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             text-align: center;
         }
 
+        .login-hint {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 24px;
+        }
+
+        .login-label {
+            display: block;
+            text-align: left;
+            font-size: 18px;
+            font-weight: bold;
+            color: #0d0875;
+            margin-bottom: 8px;
+        }
+
+        .login-error {
+            color: #c00;
+            margin-bottom: 12px;
+            font-size: 16px;
+            background: #ffe0e0;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
         .login-title{
-            font-size: 25px;
+            font-size: 26px;
             padding: 5px;
             color: #0d0875;
             font-weight: bolder;
@@ -60,13 +84,12 @@
 
         .login-input select{
             width: 100%;
-            padding: 10px;
+            padding: 14px;
             border: 3px solid #ccc;
-            border-radius: 5px;
+            border-radius: 8px;
             outline: none;
             font-size: 20px;
-            margin-bottom: 10px;
-            font-family: "Lucida Console", "Courier New", monospace;
+            margin-bottom: 16px;
         }
 
         .login-input select:focus {
@@ -75,13 +98,12 @@
 
         .login-input input{
             width: 100%;
-            padding: 10px;
+            padding: 14px;
             border: 3px solid #ccc;
-            border-radius: 5px;
+            border-radius: 8px;
             outline: none;
             font-size: 20px;
             margin-bottom: 10px;
-            font-family: "Lucida Console", "Courier New", monospace;
         }
 
         .login-input input:focus {
@@ -90,15 +112,15 @@
 
         .login-btn {
             width: 100%;
-            padding: 10px;
+            padding: 16px;
             background: #0d0875;
             border: none;
             color: white;
-            font-size: 20px;
-            border-radius: 5px;
+            font-size: 22px;
+            font-weight: bold;
+            border-radius: 8px;
             cursor: pointer;
-            transition: 0.3s;
-            font-family: "Lucida Console", "Courier New", monospace;
+            margin-top: 8px;
         }
 
         .login-btn:hover {
@@ -117,21 +139,25 @@
         Receipting System
     </div>
 
-    <!-- <div class="login-body">
-        Log In
-    </div> -->
+    <p class="login-hint">Select your name and enter your password to open the system.</p>
 
-    <form method="POST" action="#">
+    <form method="POST" action="{{ route('login') }}">
         @csrf
+        @if ($errors->has('username') || $errors->has('password'))
+            <div class="login-error">{{ $errors->first('password') ?: $errors->first('username') }}</div>
+        @endif
         <div class="login-input">
-            <select id="username" name="username">
-                <option value="user">Alma</option>
-                <option value="admin">Admin</option>
+            <label for="username" class="login-label">User</label>
+            <select id="username" name="username" required>
+                <option value="">Select user...</option>
+                <option value="test@example.com" {{ old('username') == 'test@example.com' ? 'selected' : '' }}>Alma (User)</option>
+                <option value="admin@example.com" {{ old('username') == 'admin@example.com' ? 'selected' : '' }}>Admin</option>
             </select>
-            <input placeholder="Password" type="password" name="password" required>
+            <label for="password" class="login-label">Password</label>
+            <input id="password" placeholder="Type your password here" type="password" name="password" required autocomplete="current-password">
         </div>
 
-        <button type="submit" class="login-btn">Log In</button>
+        <button type="submit" class="login-btn">Open system</button>
     </form>
 </div>
 </body>
