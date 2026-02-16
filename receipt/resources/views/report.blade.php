@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>Report</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{{ asset('images/icon.png') }}" type="image/png">
     <style>
         body {
     font-family: Inter, sans-serif;
@@ -110,9 +113,38 @@
     background: #f3f4f6;
 }
 
+.report-nav {
+    background: #0d0875;
+    padding: 12px 20px;
+    margin: -8px -8px 20px -8px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+.report-nav a, .report-nav .report-logout-btn {
+    color: #fff;
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: bold;
+}
+.report-nav .report-logout-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-left: auto;
+}
     </style>
 </head>
 <body>
+
+<nav class="report-nav">
+    <a href="{{ route('user') }}">← New receipt</a>
+    <a href="{{ route('report') }}">View reports</a>
+    <form method="POST" action="{{ route('logout') }}" style="display: inline;">
+        @csrf
+        <button type="submit" class="report-logout-btn">Log out</button>
+    </form>
+</nav>
 
 <div class="table-container">
 
@@ -160,14 +192,18 @@
 
         <!-- Showing Info -->
         <div class="pagination-info">
-            <!-- Showing {{ $users->firstItem() }}–
-            {{ $users->lastItem() }}
-            of {{ $users->total() }} -->
+            @isset($receipts)
+                Showing {{ $receipts->firstItem() ?? 0 }}–{{ $receipts->lastItem() ?? 0 }} of {{ $receipts->total() }}
+            @else
+                Showing 0 of 0
+            @endisset
         </div>
 
         <!-- Pagination Links -->
         <div>
-            <!-- {{ $users->onEachSide(1)->links('pagination::default') }} -->
+            @isset($receipts)
+                {{ $receipts->links('pagination::default') }}
+            @endif
         </div>
 
     </div>
