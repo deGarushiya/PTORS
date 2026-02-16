@@ -257,7 +257,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body"  id="modalBodyContent">
-            <!-- Script -->
+            <!--  -->
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Enter</button>
@@ -299,15 +299,16 @@ document.getElementById("particulars").addEventListener("change", function() {
                     <div class="col"></div>
                 </div>
                 <div class="row row-cols-3">
-                <div class="col" style="padding: 10px;">
-                    <label>RCDs</label>
-                    <input type="number" id="rcdCount" min="0" value="0" style="width:20%; text-align:center;">
-                    <button type="button" onclick="addRCD()" style="border-radius: 3px;">Add</button>
-                    <button type="button" onclick="removeRCD()" style="border-radius: 3px;">Remove</button>
+                    <div class="col" style="padding: 10px;">
+                        <label>RCDs</label>
+                        <input type="number" id="rcdCount" min="0" value="0"
+                            style="width:20%; text-align:center;">
+                        <button type="button" id="addRcdBtn">Add</button>
+                        <button type="button" id="removeRcdBtn">Remove</button>
+                    </div>
+                    <div class="col"></div>
                 </div>
-                <div class="col"></div>
-                </div>
-            
+
                 <div id="rcdContainer"></div>
 
                 <div class="row row-cols-3">
@@ -365,6 +366,51 @@ document.getElementById("particulars").addEventListener("change", function() {
     }
 
     modalBody.innerHTML = content;
+
+    if (value === "Settlement") {
+
+        const rcdCountInput = document.getElementById("rcdCount");
+        const rcdContainer = document.getElementById("rcdContainer");
+        const addBtn = document.getElementById("addRcdBtn");
+        const removeBtn = document.getElementById("removeRcdBtn");
+
+        function generateRCDInputs(count) {
+            rcdContainer.innerHTML = "";
+
+            for (let i = 1; i <= count; i++) {
+                rcdContainer.innerHTML += `
+                    <div class="row row-cols-3" style="margin-bottom:5px;">
+                        <div class="col" style="padding: 10px;">
+                            <input type="text"
+                                name="rcd[]"
+                                placeholder="RCD ${i}"
+                                style="width: 100%; text-align: center;">
+                        </div>
+                        <div class="col"></div>
+                        <div class="col"></div>
+                    </div>
+                `;
+            }
+        }
+
+        rcdCountInput.addEventListener("input", function () {
+            generateRCDInputs(parseInt(this.value) || 0);
+        });
+
+        addBtn.addEventListener("click", function () {
+            let current = parseInt(rcdCountInput.value) || 0;
+            rcdCountInput.value = current + 1;
+            generateRCDInputs(current + 1);
+        });
+
+        removeBtn.addEventListener("click", function () {
+            let current = parseInt(rcdCountInput.value) || 0;
+            if (current > 0) {
+                rcdCountInput.value = current - 1;
+                generateRCDInputs(current - 1);
+            }
+        });
+    }
 
     let modal = new bootstrap.Modal(
         document.getElementById('particularsModal')
