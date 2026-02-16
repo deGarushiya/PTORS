@@ -307,6 +307,7 @@ document.getElementById("particulars").addEventListener("change", function() {
                         <button type="button" id="removeRcdBtn">Remove</button>
                     </div>
                     <div class="col"></div>
+                    <div class="col"></div>
                 </div>
 
                 <div id="rcdContainer"></div>
