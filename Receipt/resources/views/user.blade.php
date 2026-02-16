@@ -67,23 +67,6 @@
             border: solid 1px #000;
         }
 
-        .print-btn {
-            width: 50%;
-            padding: 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: 0.3s;
-            border: solid 3px #0d0875;
-            color: #0d0875;
-            background-color: #fff;
-        }
-
-        .print-btn:hover {
-            background: #0d0875;
-            border: solid 3px #0d0875;
-            color: white;
-        }
-
         footer {
             list-style-type: none;
             margin: 0;
@@ -227,7 +210,7 @@
                 </div>
                 <div class="col" style="border:none">
                     <h6>
-                    <br>ALMA CRUZ
+                    <br> <b style="font-size: 18px;">ALMA CRUZ</b>
                     <br>______________________
                     <br> Collecting Officer
                     </h6>
@@ -242,7 +225,7 @@
             </div>
         </div>
         <div class="container text-center" style="background-color: #ffffff !important;">
-            <button type="submit" class="print-btn">Print</button>
+            <button type="submit" class="btn btn-secondary" style="width: 50%;">Print</button>
         </div>
     </div>
 
@@ -255,50 +238,11 @@
   <div class="modal-dialog" style="max-width: 1000px; overflow-y: auto;">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modalContent"></h5>
+        <h5 class="modal-title" id="modalContent" style="font-weight: bold;"></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body">
-        <div class="row row-cols-3" style="text-align: center; font-weight: bold;">
-            <div class="col">Nature of Collection</div>
-            <div class="col"></div>
-            <div class="col">Amount</div>
-        </div>
-        <div class="row row-cols-3">
-            <div class="col" style="padding: 10px;">Settlement of cash advance</div>
-            <div class="col"></div>
-            <div class="col" style="text-align: left; padding: 10px;">P <input type="text" name="" style="width: 90%; text-align: right;"></div>
-        </div>
-        <div class="row row-cols-3">
-            <div class="col" style="padding: 10px;">Cash Advance</div>
-            <div class="col" style="padding: 10px;"><input type="text" name="" style="width: 100%; text-align: center;"></div>
-            <div class="col"></div>
-        </div>
-        <div class="row row-cols-3">
-            <div class="col">RCD</div>
-            <div class="col"></div>
-            <div class="col"></div>
-        </div>
-        <div class="row row-cols-3">
-            <div class="col" style="padding: 10px;"><input type="text" name="" style="width: 100%; text-align: center;"></div>
-            <div class="col"></div>
-            <div class="col"></div>
-        </div>
-        <div class="row row-cols-3">
-            <div class="col"></div>
-            <div class="col" style="padding: 10px; text-align: center;">(Auto Computation of Total RCDs)</div>
-            <div class="col"></div>
-        </div>
-        <div class="row row-cols-3">
-            <div class="col" style="padding: 10px;">Cash Refund</div>
-            <div class="col" style="padding: 10px; text-align: center;">(Auto Computation of Cash Advance and Total RCDs)</div>
-            <div class="col"></div>
-        </div>
-        <div class="row row-cols-3">
-            <div class="col" style="padding: 10px;"><b>TOTAL</b></div>
-            <div class="col"></div>
-            <div class="col" style="text-align: left; padding: 10px;">P <input type="text" placeholder="total" disabled style="width: 90%; text-align: right;"></div>
-        </div>
+      <div class="modal-body"  id="modalBodyContent">
+            <!-- Script -->
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Enter</button>
@@ -307,36 +251,167 @@
   </div>
 </div>
 
-<!-- Bootstrap 5 JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
+<!-- Script for different particulars-->
 <script>
 document.getElementById("particulars").addEventListener("change", function() {
 
-    let selectedText = this.options[this.selectedIndex].text;
+    let value = this.value;
+    let modalTitle = document.getElementById("modalContent");
+    let modalBody = document.getElementById("modalBodyContent");
 
-    if (this.value !== "#") {
+    if (value === "#") return;
 
-        document.getElementById("modalContent").innerText =
-            selectedText;
+    let content = "";
 
-        let modal = new bootstrap.Modal(
-            document.getElementById('particularsModal')
-        );
+    switch(value) {
 
-        modal.show();
+        case "Settlement":
+            modalTitle.innerText = "Settlement of Cash Advance";
+            content = `
+                <div class="row row-cols-3" style="text-align: center; font-weight: bold;">
+                    <div class="col">Nature of Collection</div>
+                    <div class="col"></div>
+                    <div class="col">Amount</div>
+                </div>
+                <div class="row row-cols-3">
+                    <div class="col" style="padding: 10px;">Settlement of cash advance</div>
+                    <div class="col"></div>
+                    <div class="col" style="text-align: left; padding: 10px;">P <input type="text" name="" style="width: 90%; text-align: right;"></div>
+                </div>
+                <div class="row row-cols-3">
+                    <div class="col" style="padding: 10px;">Cash Advance</div>
+                    <div class="col" style="padding: 10px;"><input type="text" name="" style="width: 100%; text-align: center;"></div>
+                    <div class="col"></div>
+                </div>
+                <div class="row row-cols-3">
+                <div class="col" style="padding: 10px;">
+                    <label>RCDs</label>
+                    <input type="number" id="rcdCount" min="0" value="0" style="width:20%; text-align:center;">
+                    <button type="button" onclick="addRCD()" style="border-radius: 3px;">Add</button>
+                    <button type="button" onclick="removeRCD()" style="border-radius: 3px;">Remove</button>
+                </div>
+                <div class="col"></div>
+                </div>
+            
+                <div id="rcdContainer"></div>
+
+                <div class="row row-cols-3">
+                    <div class="col"></div>
+                    <div class="col" style="padding: 10px; text-align: center;">(Auto Computation of Total RCDs)</div>
+                    <div class="col"></div>
+                </div>
+                <div class="row row-cols-3">
+                    <div class="col" style="padding: 10px;">Cash Refund</div>
+                    <div class="col" style="padding: 10px; text-align: center;">(Auto Computation of Cash Advance and Total RCDs)</div>
+                    <div class="col"></div>
+                </div>
+                <div class="row row-cols-3">
+                    <div class="col" style="padding: 10px;"><b>TOTAL</b></div>
+                    <div class="col"></div>
+                    <div class="col" style="text-align: left; padding: 10px;">P <input type="text" placeholder="total" disabled style="width: 90%; text-align: right;"></div>
+                </div>
+            </div>
+            `;
+        break;
+
+        case "Remittance":
+            modalTitle.innerText = "Remittance of Museum Shop Sale";
+            content = `
+                <div class="row">
+                    <div class="col-6">Total Sales</div>
+                    <div class="col-6"><input type="text" class="form-control"></div>
+                </div>
+            `;
+        break;
+
+        case "Payment":
+            modalTitle.innerText = "Payment of 25% LGU Share";
+            content = `
+                <div class="row">
+                    <div class="col-6">LGU Share</div>
+                    <div class="col-6"><input type="text" class="form-control"></div>
+                </div>
+            `;
+        break;
+
+        case "Refund":
+            modalTitle.innerText = "Refund of Unexpected Cash Advance";
+            content = `
+                <div class="row">
+                    <div class="col-6">Refund Amount</div>
+                    <div class="col-6"><input type="text" class="form-control"></div>
+                </div>
+            `;
+        break;
+
+        default:
+            modalTitle.innerText = this.options[this.selectedIndex].text;
+            content = `<p>No form available.</p>`;
     }
+
+    modalBody.innerHTML = content;
+
+    let modal = new bootstrap.Modal(
+        document.getElementById('particularsModal')
+    );
+
+    modal.show();
 
 });
 </script>
 
+<!-- Script for RCD-->
+<script>
+const rcdCountInput = document.getElementById("rcdCount");
+const rcdContainer = document.getElementById("rcdContainer");
+
+// Auto generate kapag nag change ng number
+rcdCountInput.addEventListener("input", function () {
+    generateRCDInputs(parseInt(this.value) || 0);
+});
+
+function generateRCDInputs(count) {
+    rcdContainer.innerHTML = "";
+
+    for (let i = 1; i <= count; i++) {
+        rcdContainer.innerHTML += `
+            <div class="row row-cols-3" style="margin-bottom:5px;">
+                <div class="col" style="padding: 10px;">
+                    <input type="text" 
+                           name="rcd[]" 
+                           placeholder="RCD ${i}" 
+                           style="width: 100%; text-align: center;">
+                </div>
+                <div class="col"></div>
+                <div class="col"></div>
+            </div>
+        `;
+    }
+}
+
+// Manual add
+function addRCD() {
+    let current = parseInt(rcdCountInput.value) || 0;
+    rcdCountInput.value = current + 1;
+    generateRCDInputs(current + 1);
+}
+
+// Manual remove
+function removeRCD() {
+    let current = parseInt(rcdCountInput.value) || 0;
+    if (current > 0) {
+        rcdCountInput.value = current - 1;
+        generateRCDInputs(current - 1);
+    }
+}
+</script>
 
 <!-- Check Modal -->
 <div class="modal fade" id="checkModal">
   <div class="modal-dialog" style="max-width: 900px; overflow-y: auto;">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Check Information</h5>
+        <h5 class="modal-title" style="font-weight: bold;">Check Information</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
@@ -363,7 +438,7 @@ document.getElementById("particulars").addEventListener("change", function() {
   <div class="modal-dialog" style="max-width: 900px; overflow-y: auto;">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Money Order Information</h5>
+        <h5 class="modal-title" style="font-weight: bold;">Money Order Information</h5>
       <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
@@ -383,6 +458,7 @@ document.getElementById("particulars").addEventListener("change", function() {
   </div>
 </div>
 
+<!-- Script for check and money order-->
 <script>
     const checkboxes = document.querySelectorAll(
         '#Cash, #Check, #MoneyOrder'
