@@ -33,7 +33,7 @@
         .login-title{
             font-size: 25px;
             padding: 5px;
-            color: #1810aa;
+            color: #0d0875;
             font-weight: bolder;
             font-family: "Times New Roman", Times, serif;
         }
@@ -48,7 +48,7 @@
         .login-body{
             font-size: 25px;
             text-align: left;
-            color: #1810aa;
+            color: #0d0875;
             font-weight: bolder;
             font-family: "Lucida Console", "Courier New", monospace;
             margin-bottom: 5px;
@@ -70,7 +70,7 @@
         }
 
         .login-input select:focus {
-            border-color: #1810aa;
+            border-color: #0d0875;
         }
 
         .login-input input{
@@ -85,13 +85,13 @@
         }
 
         .login-input input:focus {
-            border-color: #1810aa;
+            border-color: #0d0875;
         }
 
         .login-btn {
             width: 100%;
             padding: 10px;
-            background: #1810aa;
+            background: #0d0875;
             border: none;
             color: white;
             font-size: 20px;
@@ -102,7 +102,7 @@
         }
 
         .login-btn:hover {
-            background: #667eea;
+            background: #1810aa;
         }
     </style>
 </head>
