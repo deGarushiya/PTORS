@@ -91,12 +91,12 @@
             border-collapse: collapse;
             width: 80%;
             font-size: 18px;
+            margin-top: 5px !important;
         }
 
         th {
             border-bottom: 3px solid #ddd !important;
             padding: 10px;
-            margin-top: 10px !important;
         }
 
         td {
@@ -113,7 +113,7 @@
         .page-link{
             border: 1px solid #a0a0a0 !important;
             border-bottom: 3px solid #a0a0a0 !important;
-            color: #838282 !important;
+            color: #7d7d7d !important;
         }
 
         footer {
