@@ -18,14 +18,14 @@
         }
 
         nav {
-        list-style-type: none;
-        margin: 0;
-        padding: 15px 0 0 0;
-        overflow: hidden;
-        background-color: #0d0875;
-        position: fixed;
-        top: 0;
-        width: 100%;
+            list-style-type: none;
+            margin: 0;
+            padding: 15px 0 0 0;
+            overflow: hidden;
+            background-color: #0d0875;
+            position: fixed;
+            top: 0;
+            width: 100%;
         }
 
         .nav img{

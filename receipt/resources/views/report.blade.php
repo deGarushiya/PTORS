@@ -18,14 +18,14 @@
         }
 
         nav {
-        list-style-type: none;
-        margin: 0;
-        padding: 15px 0 0 0;
-        overflow: hidden;
-        background-color: #0d0875;
-        position: fixed;
-        top: 0;
-        width: 100%;
+            list-style-type: none;
+            margin: 0;
+            padding: 15px 0 0 0;
+            overflow: hidden;
+            background-color: #0d0875;
+            position: fixed;
+            top: 0;
+            width: 100%;
         }
 
         .nav img{
@@ -62,6 +62,58 @@
 
         .nav-item .logout{
             float: right !important;
+        }
+         
+        .search-container{
+            width: 80%;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            margin: auto;
+        }
+
+        .search{
+            width: 300px;
+            border: 3px solid #ddd;
+            border-radius: 5px;
+            padding: 5px;
+        }
+
+        .report-container{
+            width: 80%;
+            height: 500px;
+            margin: auto;
+            border: 3px solid #ddd;
+            background-color: #ddd;
+            border-radius: 5px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            font-size: 18px;
+        }
+
+        th {
+            border-bottom: 3px solid #ddd !important;
+            padding: 10px;
+            margin-top: 10px !important;
+        }
+
+        td {
+            padding: 10px;
+        }
+
+        .pagination-container{
+            width: 80%;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            margin: auto;
+        }
+
+        .page-link{
+            border: 1px solid #a0a0a0 !important;
+            border-bottom: 3px solid #a0a0a0 !important;
+            color: #838282 !important;
         }
 
         footer {
@@ -102,6 +154,123 @@
             </li>
         </ul>
     </nav>
+
+    <div class="search-container">
+        <input type="text" class="search" placeholder="Search...">
+    </div>
+    <div class="report-container">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th scope="col" style="width: 100px">No</th>
+                    <th scope="col" style="width: 100px">OR No</th>
+                    <th scope="col">Payor</th>
+                    <th scope="col">Particulars</th>
+                    <th scope="col" style="width: 180px">Payment Method</th>
+                    <th scope="col" style="width: 150px">Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td scope="row">1</td>
+                    <td>12345678</td>
+                    <td>Vincent Aquino</td>
+                    <td>Cash Advance</td>
+                    <td>Money Order</td>
+                    <td>02/18/2026</td>
+                </tr>
+                <tr>
+                    <td scope="row">2</td>
+                    <td>12345678</td>
+                    <td>Vincent Aquino</td>
+                    <td>Cash Advance</td>
+                    <td>Money Order</td>
+                    <td>02/18/2026</td>
+                </tr>
+                <tr>
+                    <td scope="row">3</td>
+                    <td>12345678</td>
+                    <td>Vincent Aquino</td>
+                    <td>Cash Advance</td>
+                    <td>Money Order</td>
+                    <td>02/18/2026</td>
+                </tr>
+                <tr>
+                    <td scope="row">4</td>
+                    <td>12345678</td>
+                    <td>Vincent Aquino</td>
+                    <td>Cash Advance</td>
+                    <td>Money Order</td>
+                    <td>02/18/2026</td>
+                </tr>
+                <tr>
+                    <td scope="row">5</td>
+                    <td>12345678</td>
+                    <td>Vincent Aquino</td>
+                    <td>Cash Advance</td>
+                    <td>Money Order</td>
+                    <td>02/18/2026</td>
+                </tr>
+                <tr>
+                    <td scope="row">6</td>
+                    <td>12345678</td>
+                    <td>Vincent Aquino</td>
+                    <td>Cash Advance</td>
+                    <td>Money Order</td>
+                    <td>02/18/2026</td>
+                </tr>
+                <tr>
+                    <td scope="row">7</td>
+                    <td>12345678</td>
+                    <td>Vincent Aquino</td>
+                    <td>Cash Advance</td>
+                    <td>Money Order</td>
+                    <td>02/18/2026</td>
+                </tr>
+                <tr>
+                    <td scope="row">8</td>
+                    <td>12345678</td>
+                    <td>Vincent Aquino</td>
+                    <td>Cash Advance</td>
+                    <td>Money Order</td>
+                    <td>02/18/2026</td>
+                </tr>
+                <tr>
+                    <td scope="row">9</td>
+                    <td>12345678</td>
+                    <td>Vincent Aquino</td>
+                    <td>Cash Advance</td>
+                    <td>Money Order</td>
+                    <td>02/18/2026</td>
+                </tr>
+                <tr>
+                    <td scope="row">10</td>
+                    <td>12345678</td>
+                    <td>Vincent Aquino</td>
+                    <td>Cash Advance</td>
+                    <td>Money Order</td>
+                    <td>02/18/2026</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="pagination-container">
+        <ul class="pagination">
+            <li class="page-item">
+            <a class="page-link" href="#" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+            </li>
+            <li class="page-item"><a class="page-link" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item">
+            <a class="page-link" href="#" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+            </li>
+        </ul>
+    </div>
 
     <footer>
         <p>@2026</p>
