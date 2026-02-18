@@ -109,6 +109,11 @@
             <li class="nav-item">
                 <a class="nav-link" href="{{ route('report') }}">View reports</a>
             </li>
+            @if(auth()->user()->isAdmin())
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('admin') }}">Admin</a>
+            </li>
+            @endif
             <li class="nav-item ms-auto" style="margin-right: 10px">
                 <form method="POST" action="{{ route('logout') }}" style="display: inline;">
                     @csrf
@@ -118,6 +123,9 @@
         </ul>
     </nav>
 
+    @if(session('error'))
+        <div class="alert alert-warning mx-3 mt-3" role="alert">{{ session('error') }}</div>
+        @endif
     <div class="receipt-container">
         <div class="container text-center">
             <div class="row row-cols-4" style="border: solid 1px #000; padding-top: 20px;">

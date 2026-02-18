@@ -21,6 +21,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'role',
         'password',
     ];
 
@@ -50,5 +51,10 @@ class User extends Authenticatable
     public function receipts(): HasMany
     {
         return $this->hasMany(Receipt::class, 'issued_by');
+    }
+
+    public function isAdmin(): bool
+    {
+        return ($this->role ?? 'user') === 'admin';
     }
 }

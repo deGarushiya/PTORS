@@ -39,4 +39,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/report', function () {
         return view('report', ['perPage' => request('per_page', 10)]);
     })->name('report');
+
+    Route::get('/admin', function () {
+        if (!Auth::user()->isAdmin()) {
+            return redirect()->route('user')->with('error', 'You do not have access to the admin area.');
+        }
+        $receiptsCount = \App\Models\Receipt::count();
+        $receiptsTotal = \App\Models\Receipt::sum('amount');
+        $officesCount = \App\Models\Office::where('is_active', true)->count();
+        return view('admin', [
+            'receiptsCount' => $receiptsCount,
+            'receiptsTotal' => $receiptsTotal,
+            'officesCount' => $officesCount,
+        ]);
+    })->name('admin');
 });

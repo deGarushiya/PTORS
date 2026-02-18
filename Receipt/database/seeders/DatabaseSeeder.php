@@ -20,11 +20,12 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
         User::firstOrCreate(
             ['email' => 'test@example.com'],
-            ['name' => 'Alma', 'password' => \Illuminate\Support\Facades\Hash::make('password')]
+            ['name' => 'Alma', 'role' => 'user', 'password' => \Illuminate\Support\Facades\Hash::make('password')]
         );
         User::firstOrCreate(
             ['email' => 'admin@example.com'],
-            ['name' => 'Admin', 'password' => \Illuminate\Support\Facades\Hash::make('password')]
+            ['name' => 'Admin', 'role' => 'admin', 'password' => \Illuminate\Support\Facades\Hash::make('password')]
         );
+        User::where('email', 'admin@example.com')->update(['role' => 'admin']);
     }
 }

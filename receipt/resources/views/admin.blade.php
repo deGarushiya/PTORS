@@ -64,9 +64,75 @@
             float: right !important;
         }
 
-        .receipt-container{
-            margin-top: 20px;
-            margin-bottom: 20px;
+        .admin-container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .admin-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #0d0875;
+            margin-bottom: 24px;
+        }
+
+        .admin-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .admin-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border-left: 4px solid #0d0875;
+        }
+
+        .admin-card-title {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
+        .admin-card-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #0d0875;
+        }
+
+        .admin-links {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .admin-links-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #0d0875;
+            margin-bottom: 16px;
+        }
+
+        .admin-links a {
+            display: inline-block;
+            padding: 12px 20px;
+            margin-right: 12px;
+            margin-bottom: 8px;
+            background: #0d0875;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .admin-links a:hover {
+            background: #1810aa;
+            color: #fff;
         }
 
         footer {
@@ -94,7 +160,13 @@
                 <img src="{{ asset('images/icon.png') }}" alt="Logo">
             </div>
             <li class="nav-item">
-                <a class="nav-link active" href="{{ route('user') }}">New receipt</a>
+                <a class="nav-link" href="{{ route('user') }}">New receipt</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('report') }}">View reports</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{{ route('admin') }}">Admin</a>
             </li>
             <li class="nav-item ms-auto" style="margin-right: 10px">
                 <form method="POST" action="{{ route('logout') }}" style="display: inline;">
@@ -106,7 +178,28 @@
     </nav>
 
     <div class="admin-container">
-        
+        <h1 class="admin-title">Admin</h1>
+
+        <div class="admin-cards">
+            <div class="admin-card">
+                <div class="admin-card-title">Total receipts</div>
+                <div class="admin-card-value">{{ number_format($receiptsCount) }}</div>
+            </div>
+            <div class="admin-card">
+                <div class="admin-card-title">Total amount</div>
+                <div class="admin-card-value">₱ {{ number_format($receiptsTotal, 2) }}</div>
+            </div>
+            <div class="admin-card">
+                <div class="admin-card-title">Active offices</div>
+                <div class="admin-card-value">{{ $officesCount }}</div>
+            </div>
+        </div>
+
+        <div class="admin-links">
+            <div class="admin-links-title">Quick links</div>
+            <a href="{{ route('user') }}">New receipt</a>
+            <a href="{{ route('report') }}">View reports</a>
+        </div>
     </div>
 
     <footer>

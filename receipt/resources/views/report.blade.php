@@ -146,6 +146,11 @@
             <li class="nav-item">
                 <a class="nav-link active" href="{{ route('report') }}">View reports</a>
             </li>
+            @if(auth()->user()->isAdmin())
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('admin') }}">Admin</a>
+            </li>
+            @endif
             <li class="nav-item ms-auto" style="margin-right: 10px">
                 <form method="POST" action="{{ route('logout') }}" style="display: inline;">
                     @csrf
