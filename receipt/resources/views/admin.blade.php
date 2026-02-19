@@ -15,6 +15,43 @@
             padding-bottom: 60px; 
             overflow-y: auto;
             font-family: "Lucida Console", "Courier New", monospace;
+            background-image: linear-gradient(180deg, rgba(232,238,247,0.85) 0%, rgba(214,223,234,0.85) 50%, rgba(226,232,242,0.85) 100%), url("{{ asset('images/PangasinanBanner_Capitol2.png') }}");
+            background-size: 100%, 140%;
+            background-position: center, 8%;
+            background-repeat: no-repeat, no-repeat;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            right: -5%;
+            bottom: -5%;
+            width: 70%;
+            max-width: 5000px;
+            height: 70%;
+            max-height: 5000px;
+            /* /* background-image: url("{{ asset('images/icon.png') }}"); */ */
+            /* background-size: contain;
+            background-repeat: no-repeat;
+            background-position: bottom right;
+            opacity: 0.12;
+            -webkit-mask-image: radial-gradient(ellipse 140% 140% at 0% 0%, transparent 25%, black 75%);
+            mask-image: radial-gradient(ellipse 140% 140% at 0% 0%, transparent 25%, black 75%);
+            -webkit-mask-size: 100% 100%;
+            mask-size: 100% 100%;
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+            -webkit-mask-position: top left;
+            mask-position: top left;
+            pointer-events: none; */
+            z-index: 0;
+        }
+
+        .app-content-layer {
+            position: relative;
+            z-index: 1;
         }
 
         nav {
@@ -154,6 +191,7 @@
     </style>
 </head>
 <body>
+    <div class="app-content-layer">
     <nav>
         <ul class="nav nav-tabs">
             <div class>
@@ -187,7 +225,7 @@
             </div>
             <div class="admin-card">
                 <div class="admin-card-title">Total amount</div>
-                <div class="admin-card-value">₱ {{ number_format($receiptsTotal, 2) }}</div>
+                <div class="admin-card-value">₱ {{ number_format($receiptsTotal, 2, '.', ',') }}</div>
             </div>
             <div class="admin-card">
                 <div class="admin-card-title">Active offices</div>
@@ -205,5 +243,6 @@
     <footer>
         <p>@2026</p>
     </footer>
+    </div>
 </body>
 </html>

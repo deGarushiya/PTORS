@@ -5,6 +5,9 @@
     <title>Login Page</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="{{ asset('images/icon.png') }}" type="image/png">
+    @php
+        $bgImage = asset('images/PangasinanBanner_Capitol1.png');
+    @endphp
     <style>
         * {
             margin: 0;
@@ -15,10 +18,30 @@
 
         body {
             height: 100vh;
-            background: #f3f3ff;
+            background-color: #e6eeff;
+            background-image: url("{{ $bgImage }}");
+            background-repeat: no-repeat;
+            background-position: 13% 50%;
+            background-attachment: fixed;
+            background-size: 177%;
             display: flex;
             justify-content: center;
             align-items: center;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(to left, transparent 50%, rgba(230, 238, 255, 0.5) 75%, #e6eeff 100%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body > * {
+            position: relative;
+            z-index: 1;
         }
 
         .login-container {
@@ -46,12 +69,16 @@
         }
 
         .login-error {
-            color: #c00;
+            color: #b71c1c;
             margin-bottom: 12px;
-            font-size: 16px;
-            background: #ffe0e0;
-            padding: 10px;
-            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 500;
+            background-color: #ffebee;
+            border: 1px solid transparent;
+            border-left: 4px solid #c62828;
+            padding: 14px 18px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
 
         .login-title{

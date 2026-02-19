@@ -15,7 +15,47 @@
             padding-bottom: 60px; 
             overflow-y: auto;
             font-family: "Lucida Console", "Courier New", monospace;
+            background-image: linear-gradient(180deg, rgba(232,238,247,0.85) 0%, rgba(214,223,234,0.85) 50%, rgba(226,232,242,0.85) 100%), url("{{ asset('images/PangasinanBanner_Capitol2.png') }}");
+            background-size: 100%, 140%;
+            background-position: center, 8%;
+            background-repeat: no-repeat, no-repeat;
+            min-height: 100vh;
+            position: relative;
         }
+
+        body::after {
+            content: '';
+            position: fixed;
+            right: -5%;
+            bottom: -5%;
+            width: 70%;
+            max-width: 5000px;
+            height: 70%;
+            max-height: 5000px;
+            /* background-image: url("{{ asset('images/icon.png') }}"); */
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: bottom right;
+            opacity: 0.12;
+            -webkit-mask-image: radial-gradient(ellipse 140% 140% at 0% 0%, transparent 25%, black 75%);
+            mask-image: radial-gradient(ellipse 140% 140% at 0% 0%, transparent 25%, black 75%);
+            -webkit-mask-size: 100% 100%;
+            mask-size: 100% 100%;
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+            -webkit-mask-position: top left;
+            mask-position: top left;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .app-content-layer {
+            position: relative;
+            z-index: 1;
+        }
+
+        .modal { z-index: 1060 !important; }
+        .modal-backdrop { z-index: 1055 !important; }
 
         nav {
             list-style-type: none;
@@ -79,6 +119,53 @@
             border: solid 1px #000;
         }
 
+        .msg-popup-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .msg-popup-overlay.show { display: flex; }
+        .msg-popup {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            max-width: 440px;
+            width: 100%;
+            overflow: hidden;
+        }
+        .msg-popup .msg-body {
+            padding: 24px 24px 20px;
+            font-size: 15px;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+        .msg-popup .msg-footer {
+            padding: 12px 24px 20px;
+            text-align: right;
+        }
+        .msg-popup .msg-btn {
+            padding: 10px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            transition: opacity 0.2s;
+        }
+        .msg-popup .msg-btn:hover { opacity: 0.9; }
+        .msg-popup.msg-success .msg-body { background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); color: #1b5e20; }
+        .msg-popup.msg-success .msg-btn { background: #2e7d32; color: #fff; }
+        .msg-popup.msg-warning .msg-body { background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%); color: #e65100; }
+        .msg-popup.msg-warning .msg-btn { background: #f57c00; color: #fff; }
+        .msg-popup.msg-danger .msg-body { background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); color: #b71c1c; }
+        .msg-popup.msg-danger .msg-btn { background: #c62828; color: #fff; }
+        .msg-popup ul { padding-left: 1.2em; margin: 0; }
+
         footer {
             list-style-type: none;
             margin: 0;
@@ -98,6 +185,7 @@
     </style>
 </head>
 <body>
+    <div class="app-content-layer">
     <nav>
         <ul class="nav nav-tabs">
             <div class>
@@ -123,10 +211,51 @@
         </ul>
     </nav>
 
-    @if(session('error'))
-        <div class="alert alert-warning mx-3 mt-3" role="alert">{{ session('error') }}</div>
-        @endif
-    <div class="receipt-container">
+    <div id="msgPopupOverlay" class="msg-popup-overlay" role="dialog" aria-modal="true" aria-labelledby="msgPopupTitle">
+        <div id="msgPopup" class="msg-popup" style="display: none;">
+            <div class="msg-body" id="msgPopupBody"></div>
+            <div class="msg-footer"><button type="button" class="msg-btn" id="msgPopupOk">OK</button></div>
+        </div>
+    </div>
+    @php
+        $msgType = null;
+        $msgContent = '';
+        if (session('error')) { $msgType = 'warning'; $msgContent = session('error'); }
+        elseif (session('success')) { $msgType = 'success'; $msgContent = session('success'); }
+        elseif ($errors->any()) { $msgType = 'danger'; $msgContent = '<ul>'.implode('', array_map(fn($e)=>'<li>'.e($e).'</li>', $errors->all())).'</ul>'; }
+        elseif ($offices->isEmpty()) { $msgType = 'warning'; $msgContent = 'No office configured. Run php artisan db:seed to create the default office.'; }
+    @endphp
+    @if($msgType)
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        showMsgPopup({!! json_encode($msgType) !!}, {!! json_encode($msgContent) !!});
+    });
+    </script>
+    @endif
+    <script>
+    function showMsgPopup(type, html) {
+        var overlay = document.getElementById('msgPopupOverlay');
+        var popup = document.getElementById('msgPopup');
+        var body = document.getElementById('msgPopupBody');
+        var btn = document.getElementById('msgPopupOk');
+        if (!overlay || !popup || !body) return;
+        popup.className = 'msg-popup msg-' + type;
+        body.innerHTML = html;
+        overlay.classList.add('show');
+        popup.style.display = 'block';
+        btn.onclick = function() {
+            overlay.classList.remove('show');
+            popup.style.display = 'none';
+        };
+        overlay.onclick = function(e) {
+            if (e.target === overlay) btn.onclick();
+        };
+    }
+    </script>
+    @if(!$offices->isEmpty())
+    <form method="POST" action="{{ route('receipts.store') }}" class="receipt-container">
+        @csrf
+        <input type="hidden" name="office_id" value="{{ $offices->first()->id }}">
         <div class="container text-center">
             <div class="row row-cols-4" style="border: solid 1px #000; padding-top: 20px;">
                 <div class="col" style="border:none;">
@@ -152,8 +281,8 @@
                     <p>Revised January 1992</p>
                 </div>
                 <div class="col" style="font-weight: bold; padding-top: 30px;">ORIGINAL</div>
-                <div class="col" style="padding: 10px; text-align: left;">DATE <input type="date" name="date" style="width: 100%;"></div>
-                <div class="col" style="padding: 10px;"><input placeholder="Official Receipt No" type="text" name="OR_no" style="width: 100%; height: 52px; text-align: center;"></div>
+                <div class="col" style="padding: 10px; text-align: left;">DATE <input type="date" name="receipt_date" value="{{ old('receipt_date', date('Y-m-d')) }}" style="width: 100%;" required></div>
+                <div class="col" style="padding: 10px;"><input placeholder="Official Receipt Number" type="text" name="receipt_number" value="{{ old('receipt_number') }}" style="width: 100%; height: 52px; text-align: center;" required maxlength="7" pattern="[0-9]{7}" title="Enter exactly 7 digits"></div>
             </div>
         </div>
         <div class="container text-center">
@@ -164,47 +293,49 @@
                 <div class="col" style="padding: 10px; text-align: left;">FUND</div>
             </div>
             <div class="row row-cols-1">
-                <div class="col" style="padding: 10px; text-align: left;">Payor <input type="text" name="payor" style="width: 100%;"></div>
+                <div class="col" style="padding: 10px; text-align: left;">Payor <input type="text" name="payer_name" value="{{ old('payer_name') }}" style="width: 100%;" required></div>
             </div>
         </div>
         <div class="container text-center">
             <div class="row row-cols-1">
                 <div class="col" style="padding: 10px; text-align: left;">Particulars 
-                    <select id="particulars" name="particulars" style="width: 50%; height: 30px;">
-                        <option value="#"></option>
-                        <option value="Settlement">Settlement of Cash Advance</option>
-                        <option value="Remittance">Remittance of Banaan Provincial Museum Shop Sale</option>
-                        <option value="Payment">Payment of 25% Government LGU Share</option>
-                        <option value="Refund">Refund of Unexpected Cash Advance</option>
-                        <option value="Cancelled">Cancelled OR</option>
-                        <option value="Partial">Partial Payment of Loan</option>
-                        <option value="Maip">Maip</option>
+                    <select id="particulars" name="description" style="width: 50%; height: 30px;">
+                        <option value="">— Select —</option>
+                        <option value="Settlement of Cash Advance" {{ old('description') == 'Settlement of Cash Advance' ? 'selected' : '' }}>Settlement of Cash Advance</option>
+                        <option value="Remittance of Banaan Provincial Museum Shop Sale" {{ old('description') == 'Remittance of Banaan Provincial Museum Shop Sale' ? 'selected' : '' }}>Remittance of Banaan Provincial Museum Shop Sale</option>
+                        <option value="Payment of 25% Government LGU Share" {{ old('description') == 'Payment of 25% Government LGU Share' ? 'selected' : '' }}>Payment of 25% Government LGU Share</option>
+                        <option value="Refund of Unexpected Cash Advance" {{ old('description') == 'Refund of Unexpected Cash Advance' ? 'selected' : '' }}>Refund of Unexpected Cash Advance</option>
+                        <option value="Cancelled OR" {{ old('description') == 'Cancelled OR' ? 'selected' : '' }}>Cancelled OR</option>
+                        <option value="Partial Payment of Loan" {{ old('description') == 'Partial Payment of Loan' ? 'selected' : '' }}>Partial Payment of Loan</option>
+                        <option value="Maip" {{ old('description') == 'Maip' ? 'selected' : '' }}>Maip</option>
                     </select>
                 </div>
             </div>
             <div class="row row-cols-3">
-                <div class="col">Nature of Collection</div>
-                <div class="col">Account Code</div>
-                <div class="col">Amount</div>
+                <div class="col" style="text-align: center; font-weight: bold;">Nature of Collection</div>
+                <div class="col" style="text-align: center; font-weight: bold;">Account Code</div>
+                <div class="col" style="text-align: center; font-weight: bold;">Amount</div>
+            </div>
+            <div id="receiptNatureRows">
+            <div class="row row-cols-3">
+                <div class="col" style="text-align: left;"></div>
+                <div class="col" style="text-align: left;"></div>
+                <div class="col" style="text-align: right; padding: 10px;">P <input type="number" step="0.01" min="0" name="amount" id="receiptAmountInput" value="{{ old('amount') }}" style="width: 90%; text-align: right;" required></div>
+            </div>
             </div>
             <div class="row row-cols-3">
-                <div class="col"></div>
-                <div class="col"></div>
-                <div class="col" style="text-align: left;">P </div>
-            </div>
-            <div class="row row-cols-3">
-                <div class="col"><b>TOTAL</b></div>
-                <div class="col"></div>
-                <div class="col" style="text-align: left;">P </div>
+                <div class="col" style="text-align: center;"><b>TOTAL</b></div>
+                <div class="col" style="text-align: center;"></div>
+                <div class="col" style="text-align: right; padding: 10px;"><b>P <span id="totalAmountDisplay">{{ old('amount') ? number_format((float)old('amount'), 2, '.', ',') : '0.00' }}</span></b></div>
             </div>
             <div class="row row-cols-1">
-                <div class="col" style="padding: 10px; text-align: left;">Amount in words </div>
+                <div class="col" style="padding: 10px; text-align: left;">Amount in words: <span id="amountInWordsDisplay"></span></div>
             </div>
         </div>
         <div class="container text-center">
             <div class="row row-cols-4" style="border:solid 1px #000;">
                 <div class="col" style="border:none; text-align: left;">
-                    <input type="checkbox" id="Cash" name="Cash" value="Cash">
+                    <input type="radio" id="Cash" name="payment_method" value="Cash" {{ old('payment_method') == 'Cash' ? 'checked' : '' }}>
                     <label for="Cash"> Cash</label>
                 </div>
                 <div class="col">Bank name</div>
@@ -212,7 +343,7 @@
                 <div class="col">Date</div>
                 
                 <div class="col" style="border:none; text-align: left;">
-                    <input type="checkbox" id="Check" name="Check" value="Check">
+                    <input type="radio" id="Check" name="payment_method" value="Check" {{ old('payment_method') == 'Check' ? 'checked' : '' }}>
                     <label for="Check"> Check</label>
                 </div>
                 <div class="col"></div>
@@ -220,7 +351,7 @@
                 <div class="col"></div>
                 
                 <div class="col" style="border:none; text-align: left;">
-                    <input type="checkbox" id="MoneyOrder" name="MoneyOrder" value="MoneyOrder">
+                    <input type="radio" id="MoneyOrder" name="payment_method" value="Money Order" {{ old('payment_method') == 'Money Order' ? 'checked' : '' }}>
                     <label for="MoneyOrder"> Money Order</label>
                 </div>
                 <div class="col" style="border:none;"></div>
@@ -248,15 +379,18 @@
             </div>
         </div>
         <div class="container text-center" style="background-color: #ffffff !important;">
-            <button type="submit" class="btn btn-secondary" style="width: 50%;">Print</button>
+            <button type="submit" class="btn btn-primary me-2" style="min-width: 140px;">Save receipt</button>
+            <button type="button" class="btn btn-secondary" style="min-width: 140px;" onclick="window.print();">Print</button>
         </div>
-    </div>
+    </form>
+    @endif
 
     <footer>
         <p>@2026</p>
     </footer>
+    </div>
 
-    <!-- Modal -->
+    <!-- Modal (outside content layer so it displays above backdrop) -->
 <div class="modal fade" id="particularsModal" tabindex="-1" style="float: center;">
   <div class="modal-dialog" style="max-width: 1000px; overflow-y: auto;">
     <div class="modal-content">
@@ -268,7 +402,7 @@
             <!--  -->
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Enter</button>
+        <button type="button" class="btn btn-secondary" id="particularsModalEnterBtn" data-bs-dismiss="modal">Enter</button>
       </div>
     </div>
   </div>
@@ -282,13 +416,13 @@ document.getElementById("particulars").addEventListener("change", function() {
     let modalTitle = document.getElementById("modalContent");
     let modalBody = document.getElementById("modalBodyContent");
 
-    if (value === "#") return;
+    if (!value) return;
 
     let content = "";
 
     switch(value) {
 
-        case "Settlement":
+        case "Settlement of Cash Advance":
             modalTitle.innerText = "Settlement of Cash Advance";
             content = `
                 <div class="row row-cols-3" style="text-align: center; font-weight: bold;">
@@ -299,11 +433,11 @@ document.getElementById("particulars").addEventListener("change", function() {
                 <div class="row row-cols-3">
                     <div class="col" style="padding: 10px;">Settlement of cash advance</div>
                     <div class="col"></div>
-                    <div class="col" style="text-align: left; padding: 10px;">P <input type="text" name="" style="width: 90%; text-align: right;"></div>
+                    <div class="col" style="text-align: left; padding: 10px;">P <input type="text" id="settlementAmountInput" placeholder="0.00" style="width: 90%; text-align: right;"></div>
                 </div>
                 <div class="row row-cols-3">
-                    <div class="col" style="padding: 10px;">Cash Advance</div>
-                    <div class="col" style="padding: 10px;"><input type="text" name="" style="width: 100%; text-align: center;"></div>
+                    <div class="col" style="padding: 10px; text-align: right;">Cash Advance</div>
+                    <div class="col" style="padding: 10px;"><input type="text" id="cashAdvanceInput" placeholder="0.00" style="width: 100%; text-align: center;"></div>
                     <div class="col"></div>
                 </div>
                 <div class="row row-cols-3">
@@ -322,25 +456,25 @@ document.getElementById("particulars").addEventListener("change", function() {
 
                 <div class="row row-cols-3">
                     <div class="col"></div>
-                    <div class="col" style="padding: 10px; text-align: center;">(Auto Computation of Total RCDs)</div>
+                    <div class="col" style="padding: 10px; text-align: center;"><strong><span id="totalRcdDisplay">0.00</span></strong></div>
                     <div class="col"></div>
                 </div>
                 <div class="row row-cols-3">
-                    <div class="col" style="padding: 10px;">Cash Refund</div>
-                    <div class="col" style="padding: 10px; text-align: center;">(Auto Computation of Cash Advance and Total RCDs)</div>
+                    <div class="col" style="padding: 10px; text-align: right;">Cash Refund</div>
+                    <div class="col" id="cashRefundCell" style="padding: 10px; text-align: center;"><strong><span id="cashRefundDisplay">0.00</span></strong></div>
                     <div class="col"></div>
                 </div>
                 <div class="row row-cols-3">
                     <div class="col" style="padding: 10px;"><b>TOTAL</b></div>
                     <div class="col"></div>
-                    <div class="col" style="text-align: left; padding: 10px;">P <input type="text" placeholder="total" disabled style="width: 90%; text-align: right;"></div>
+                    <div class="col" style="text-align: left; padding: 10px;">P <input type="text" id="settlementTotalInput" placeholder="total" readonly style="width: 90%; text-align: right;"></div>
                 </div>
             </div>
             `;
         break;
 
-        case "Remittance":
-            modalTitle.innerText = "Remittance of Museum Shop Sale";
+        case "Remittance of Banaan Provincial Museum Shop Sale":
+            modalTitle.innerText = "Remittance of Banaan Provincial Museum Shop Sale";
             content = `
                 <div class="row">
                     <div class="col-6">Total Sales</div>
@@ -349,8 +483,8 @@ document.getElementById("particulars").addEventListener("change", function() {
             `;
         break;
 
-        case "Payment":
-            modalTitle.innerText = "Payment of 25% LGU Share";
+        case "Payment of 25% Government LGU Share":
+            modalTitle.innerText = "Payment of 25% Government LGU Share";
             content = `
                 <div class="row">
                     <div class="col-6">LGU Share</div>
@@ -359,7 +493,7 @@ document.getElementById("particulars").addEventListener("change", function() {
             `;
         break;
 
-        case "Refund":
+        case "Refund of Unexpected Cash Advance":
             modalTitle.innerText = "Refund of Unexpected Cash Advance";
             content = `
                 <div class="row">
@@ -376,7 +510,7 @@ document.getElementById("particulars").addEventListener("change", function() {
 
     modalBody.innerHTML = content;
 
-    if (value === "Settlement") {
+    if (value === "Settlement of Cash Advance") {
 
         const rcdCountInput = document.getElementById("rcdCount");
         const rcdContainer = document.getElementById("rcdContainer");
@@ -390,9 +524,10 @@ document.getElementById("particulars").addEventListener("change", function() {
                 rcdContainer.innerHTML += `
                     <div class="row row-cols-3" style="margin-bottom:5px;">
                         <div class="col" style="padding: 10px;">
-                            <input type="text"
+                            <input type="number" step="0.01" min="0"
+                                class="rcd-amount"
                                 name="rcd[]"
-                                placeholder="RCD ${i}"
+                                placeholder="RCD ${i} amount"
                                 style="width: 100%; text-align: center;">
                         </div>
                         <div class="col"></div>
@@ -400,7 +535,93 @@ document.getElementById("particulars").addEventListener("change", function() {
                     </div>
                 `;
             }
+            updateTotalRcdDisplay();
         }
+
+        function formatNumber(num) {
+            const n = Number(num);
+            if (isNaN(n)) return '0.00';
+            const parts = n.toFixed(2).split('.');
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            return parts.join('.');
+        }
+
+        function updateTotalRcdDisplay() {
+            const totalEl = document.getElementById("totalRcdDisplay");
+            if (!totalEl) return;
+            const inputs = rcdContainer.querySelectorAll("input.rcd-amount");
+            let sum = 0;
+            inputs.forEach(function(inp) {
+                const v = parseFloat(inp.value);
+                if (!isNaN(v)) sum += v;
+            });
+            totalEl.textContent = formatNumber(sum);
+            updateCashRefundDisplay();
+        }
+
+        function updateCashRefundDisplay() {
+            const cashRefundEl = document.getElementById("cashRefundDisplay");
+            const cashAdvanceInput = document.getElementById("cashAdvanceInput");
+            if (!cashRefundEl || !cashAdvanceInput) return;
+            const cashAdvance = parseFloat(cashAdvanceInput.value.replace(/,/g, '')) || 0;
+            const inputs = rcdContainer.querySelectorAll("input.rcd-amount");
+            let totalRcd = 0;
+            inputs.forEach(function(inp) {
+                const v = parseFloat(inp.value);
+                if (!isNaN(v)) totalRcd += v;
+            });
+            const cashRefund = cashAdvance - totalRcd;
+            cashRefundEl.textContent = formatNumber(cashRefund);
+            checkSettlementMatch();
+        }
+
+        function checkSettlementMatch() {
+            const cashRefundEl = document.getElementById("cashRefundDisplay");
+            const cashRefundCell = document.getElementById("cashRefundCell");
+            const settlementAmountInput = document.getElementById("settlementAmountInput");
+            const settlementTotalInput = document.getElementById("settlementTotalInput");
+            if (!cashRefundEl || !cashRefundCell || !settlementAmountInput || !settlementTotalInput) return;
+            const cashRefundNum = parseFloat(cashRefundEl.textContent.replace(/,/g, '')) || 0;
+            const settlementNum = parseFloat(settlementAmountInput.value.replace(/,/g, ''));
+            const hasSettlement = !isNaN(settlementNum);
+            const matched = hasSettlement && Math.abs(cashRefundNum - settlementNum) < 0.005;
+            if (!hasSettlement && cashRefundNum === 0) {
+                cashRefundCell.style.border = '';
+                settlementTotalInput.value = '';
+                settlementTotalInput.style.color = '';
+                settlementTotalInput.style.fontWeight = '';
+            } else if (matched) {
+                cashRefundCell.style.border = '2px solid #52b788';
+                cashRefundCell.style.borderRadius = '4px';
+                settlementTotalInput.value = formatNumber(cashRefundNum);
+                settlementTotalInput.style.color = '';
+                settlementTotalInput.style.fontWeight = 'normal';
+            } else {
+                cashRefundCell.style.border = '2px solid #dc3545';
+                cashRefundCell.style.borderRadius = '4px';
+                settlementTotalInput.value = 'Incorrect value';
+                settlementTotalInput.style.color = '#dc3545';
+                settlementTotalInput.style.fontWeight = 'bold';
+            }
+        }
+
+        rcdContainer.addEventListener("input", function(e) {
+            if (e.target.classList.contains("rcd-amount")) updateTotalRcdDisplay();
+        });
+
+        const cashAdvanceInputEl = document.getElementById("cashAdvanceInput");
+        cashAdvanceInputEl.addEventListener("input", updateCashRefundDisplay);
+        cashAdvanceInputEl.addEventListener("blur", function() {
+            const n = parseFloat(this.value.replace(/,/g, ''));
+            if (!isNaN(n) && n >= 0) this.value = formatNumber(n);
+        });
+
+        document.getElementById("settlementAmountInput").addEventListener("input", checkSettlementMatch);
+        document.getElementById("settlementAmountInput").addEventListener("blur", function() {
+            const n = parseFloat(this.value.replace(/,/g, ''));
+            if (!isNaN(n) && n >= 0) this.value = formatNumber(n);
+            checkSettlementMatch();
+        });
 
         rcdCountInput.addEventListener("input", function () {
             generateRCDInputs(parseInt(this.value) || 0);
@@ -430,58 +651,64 @@ document.getElementById("particulars").addEventListener("change", function() {
 });
 </script>
 
-<!-- Script for RCD-->
+<!-- Populate receipt from Settlement of Cash Advance modal when Enter is clicked -->
 <script>
-const rcdCountInput = document.getElementById("rcdCount");
-const rcdContainer = document.getElementById("rcdContainer");
-
-// Auto generate kapag nag change ng number
-rcdCountInput.addEventListener("input", function () {
-    generateRCDInputs(parseInt(this.value) || 0);
+document.getElementById('particularsModalEnterBtn').addEventListener('click', function() {
+    if (document.getElementById('particulars').value !== 'Settlement of Cash Advance') return;
+    populateSettlementToReceipt();
 });
 
-function generateRCDInputs(count) {
-    rcdContainer.innerHTML = "";
-
-    for (let i = 1; i <= count; i++) {
-        rcdContainer.innerHTML += `
-            <div class="row row-cols-3" style="margin-bottom:5px;">
-                <div class="col" style="padding: 10px;">
-                    <input type="text" 
-                           name="rcd[]" 
-                           placeholder="RCD ${i}" 
-                           style="width: 100%; text-align: center;">
-                </div>
-                <div class="col"></div>
-                <div class="col"></div>
-            </div>
-        `;
-    }
+function formatNumberReceipt(num) {
+    var n = Number(num);
+    if (isNaN(n)) return '0.00';
+    var parts = n.toFixed(2).split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return parts.join('.');
 }
 
-// Manual add
-function addRCD() {
-    let current = parseInt(rcdCountInput.value) || 0;
-    rcdCountInput.value = current + 1;
-    generateRCDInputs(current + 1);
-}
-
-// Manual remove
-function removeRCD() {
-    let current = parseInt(rcdCountInput.value) || 0;
-    if (current > 0) {
-        rcdCountInput.value = current - 1;
-        generateRCDInputs(current - 1);
+function populateSettlementToReceipt() {
+    var settlementTotalInput = document.getElementById('settlementTotalInput');
+    var cashAdvanceInput = document.getElementById('cashAdvanceInput');
+    var cashRefundDisplay = document.getElementById('cashRefundDisplay');
+    var rcdContainer = document.getElementById('rcdContainer');
+    var receiptNatureRows = document.getElementById('receiptNatureRows');
+    var totalAmountDisplay = document.getElementById('totalAmountDisplay');
+    if (!settlementTotalInput || !receiptNatureRows) return;
+    if (settlementTotalInput.value === 'Incorrect value') return;
+    var totalNum = parseFloat(settlementTotalInput.value.replace(/,/g, '')) || 0;
+    var cashAdvanceNum = parseFloat(cashAdvanceInput.value.replace(/,/g, '')) || 0;
+    var rcdInputs = rcdContainer ? rcdContainer.querySelectorAll('input.rcd-amount') : [];
+    var rows = '';
+    rows += '<div class="row row-cols-3"><div class="col" style="padding: 10px; text-align: left;">Settlement of Cash Advance</div><div class="col" style="padding: 10px; text-align: left;"></div><div class="col" style="padding: 10px; text-align: right;">P <input type="number" step="0.01" min="0" name="amount" id="receiptAmountInput" value="' + totalNum + '" style="width: 90%; text-align: right;" required></div></div>';
+    rows += '<div class="row row-cols-3"><div class="col" style="padding: 10px; text-align: left;">Cash Advance:</div><div class="col" style="padding: 10px; text-align: left;">' + formatNumberReceipt(cashAdvanceNum) + '</div><div class="col" style="text-align: right;"></div></div>';
+    for (var i = 0; i < rcdInputs.length; i++) {
+        var rcdVal = parseFloat(rcdInputs[i].value) || 0;
+        rows += '<div class="row row-cols-3"><div class="col" style="padding: 10px; text-align: left;">RCD ' + (i + 1) + ': ' + formatNumberReceipt(rcdVal) + '</div><div class="col" style="text-align: left;"></div><div class="col" style="text-align: right;"></div></div>';
     }
+    var rcdSum = 0;
+    for (var j = 0; j < rcdInputs.length; j++) {
+        rcdSum += parseFloat(rcdInputs[j].value) || 0;
+    }
+    var cashRefundNum = cashAdvanceNum - rcdSum;
+    rows += '<div class="row row-cols-3"><div class="col" style="padding: 10px; text-align: left;">Total RCD:</div><div class="col" style="padding: 10px; text-align: left;">' + formatNumberReceipt(rcdSum) + '</div><div class="col" style="text-align: right;"></div></div>';
+    rows += '<div class="row row-cols-3"><div class="col" style="padding: 10px; text-align: left;">Cash Refund:</div><div class="col" style="padding: 10px; text-align: left;">' + formatNumberReceipt(cashRefundNum) + '</div><div class="col" style="text-align: right;"></div></div>';
+    receiptNatureRows.innerHTML = rows;
+    if (totalAmountDisplay) totalAmountDisplay.textContent = formatNumberReceipt(totalNum);
+    if (typeof updateAmountInWords === 'function') updateAmountInWords();
 }
 </script>
 
+<!-- Script for RCD (only runs when Settlement modal is open; main logic is in particulars change handler above) -->
+<script>
+// No global RCD init - elements exist only inside the Settlement modal after it's shown
+</script>
+
 <!-- Check Modal -->
-<div class="modal fade" id="checkModal">
+<div class="modal fade" id="checkModal" tabindex="-1" aria-modal="true" aria-labelledby="checkModalTitle">
   <div class="modal-dialog" style="max-width: 900px; overflow-y: auto;">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" style="font-weight: bold;">Check Information</h5>
+        <h5 class="modal-title" id="checkModalTitle" style="font-weight: bold;">Check Information</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
@@ -504,11 +731,11 @@ function removeRCD() {
 </div>
 
 <!-- Money Order Modal -->
-<div class="modal fade" id="moneyOrderModal">
+<div class="modal fade" id="moneyOrderModal" tabindex="-1" aria-modal="true" aria-labelledby="moneyOrderModalTitle">
   <div class="modal-dialog" style="max-width: 900px; overflow-y: auto;">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" style="font-weight: bold;">Money Order Information</h5>
+        <h5 class="modal-title" id="moneyOrderModalTitle" style="font-weight: bold;">Money Order Information</h5>
       <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
@@ -559,6 +786,61 @@ function removeRCD() {
             }
         });
     });
+</script>
+<script>
+function numberToWords(num) {
+    var n = parseFloat(num);
+    if (isNaN(n) || n < 0) n = 0;
+    n = Math.round(n * 100) / 100;
+    var intPart = Math.floor(n);
+    var decPart = Math.round((n - intPart) * 100);
+    var ones = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+    var tens = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+    function toWords(x) {
+        if (x === 0) return 'zero';
+        if (x < 20) return ones[x];
+        if (x < 100) return tens[Math.floor(x / 10)] + (x % 10 ? ' ' + ones[x % 10] : '');
+        if (x < 1000) return ones[Math.floor(x / 100)] + ' hundred' + (x % 100 ? ' ' + toWords(x % 100) : '');
+        if (x < 1e6) return toWords(Math.floor(x / 1000)) + ' thousand' + (x % 1000 ? ' ' + toWords(x % 1000) : '');
+        if (x < 1e9) return toWords(Math.floor(x / 1e6)) + ' million' + (x % 1e6 ? ' ' + toWords(x % 1e6) : '');
+        return toWords(Math.floor(x / 1e9)) + ' billion' + (x % 1e9 ? ' ' + toWords(x % 1e9) : '');
+    }
+    var words = toWords(intPart);
+    var centavos = (decPart < 10 ? '0' : '') + decPart;
+    return words.replace(/^\w/, function(c) { return c.toUpperCase(); }) + ' and ' + centavos + '/100 pesos only';
+}
+function updateAmountInWords() {
+    var el = document.getElementById('amountInWordsDisplay');
+    if (!el) return;
+    var totalEl = document.getElementById('totalAmountDisplay');
+    var inputEl = document.getElementById('receiptAmountInput');
+    var num = 0;
+    if (inputEl && inputEl.value !== '') num = parseFloat(inputEl.value);
+    else if (totalEl && totalEl.textContent) num = parseFloat(totalEl.textContent.replace(/,/g, ''));
+    if (isNaN(num)) num = 0;
+    el.textContent = numberToWords(num);
+}
+document.addEventListener('DOMContentLoaded', function() {
+    function formatNumber(num) {
+        var n = Number(num);
+        if (isNaN(n)) return '0.00';
+        var parts = n.toFixed(2).split('.');
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return parts.join('.');
+    }
+    var totalDisplay = document.getElementById('totalAmountDisplay');
+    var form = document.querySelector('form.receipt-container') || document.querySelector('form[action*="receipts.store"]');
+    if (form && totalDisplay) {
+        form.addEventListener('input', function(e) {
+            if (e.target.name === 'amount') {
+                var v = parseFloat(e.target.value);
+                totalDisplay.textContent = formatNumber(v);
+                updateAmountInWords();
+            }
+        });
+    }
+    updateAmountInWords();
+});
 </script>
 </body>
 </html>
