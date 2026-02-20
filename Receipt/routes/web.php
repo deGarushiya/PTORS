@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DeveloperController;
 use App\Http\Controllers\ReceiptController;
 use App\Models\Office;
 use Illuminate\Support\Facades\Auth;
@@ -35,11 +36,16 @@ Route::post('/logout', function (Request $request) {
 
 Route::middleware('auth')->group(function () {
     Route::get('/user', function () {
-        $offices = Office::where('is_active', true)->orderBy('name')->get();
-        return view('user', ['offices' => $offices ?? collect()]);
+        $office = Office::firstOrCreate(
+            ['code' => 'TREASURY'],
+            ['name' => 'Provincial Treasury Office', 'address' => null, 'contact' => null, 'is_active' => true]
+        );
+        $particulars = \App\Models\Particular::active()->ordered()->get() ?? collect();
+        return view('user', ['office' => $office, 'particulars' => $particulars]);
     })->name('user');
 
     Route::post('/receipts', [ReceiptController::class, 'store'])->name('receipts.store');
+    Route::post('/receipts/cancelled', [ReceiptController::class, 'storeCancelled'])->name('receipts.storeCancelled');
 
     Route::get('/report', function () {
         $perPage = (int) request('per_page', 10);
@@ -48,7 +54,7 @@ Route::middleware('auth')->group(function () {
         $dateFrom = request('date_from');
         $dateTo = request('date_to');
         $paymentMethod = request('payment_method');
-        $query = \App\Models\Receipt::with(['office', 'issuer']);
+        $query = \App\Models\Receipt::active()->with(['office', 'issuer']);
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('receipt_number', 'like', '%' . $search . '%')
@@ -83,13 +89,28 @@ Route::middleware('auth')->group(function () {
         if (!Auth::user()->isAdmin()) {
             return redirect()->route('user')->with('error', 'You do not have access to the admin area.');
         }
-        $receiptsCount = \App\Models\Receipt::count();
-        $receiptsTotal = \App\Models\Receipt::sum('amount');
-        $officesCount = \App\Models\Office::where('is_active', true)->count();
+        $receiptsCount = \App\Models\Receipt::active()->count();
+        $receiptsTotal = \App\Models\Receipt::active()->sum('amount');
         return view('admin', [
             'receiptsCount' => $receiptsCount,
             'receiptsTotal' => $receiptsTotal,
-            'officesCount' => $officesCount,
         ]);
     })->name('admin');
+
+    Route::get('/developer', [DeveloperController::class, 'index'])->name('developer');
+    Route::post('/developer/particulars', [DeveloperController::class, 'storeParticular'])->name('developer.particulars.store');
+    Route::put('/developer/particulars/{particular}', [DeveloperController::class, 'updateParticular'])->name('developer.particulars.update');
+    Route::delete('/developer/particulars/{particular}', [DeveloperController::class, 'destroyParticular'])->name('developer.particulars.destroy');
+
+    Route::post('/admin/backup', function () {
+        if (!Auth::user()->isAdmin()) {
+            return back()->with('error', 'You do not have access.');
+        }
+        try {
+            \Illuminate\Support\Facades\Artisan::call('backup:run');
+            return back()->with('success', 'Backup completed successfully.');
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Backup failed: ' . $e->getMessage());
+        }
+    })->name('admin.backup');
 });

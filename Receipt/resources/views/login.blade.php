@@ -13,7 +13,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: Arial, sans-serif;
+            font-family: Arial, Helvetica, sans-serif;
         }
 
         body {
@@ -96,15 +96,6 @@
             font-family: "Times New Roman", Times, serif;
         }
 
-        .login-body{
-            font-size: 25px;
-            text-align: left;
-            color: #0d0875;
-            font-weight: bolder;
-            font-family: "Lucida Console", "Courier New", monospace;
-            margin-bottom: 5px;
-        }
-
         .login-input {
             margin-bottom: 5px;
         }
@@ -151,7 +142,7 @@
         }
 
         .login-btn:hover {
-            background: #1810aa;
+            background: #0a0660;
         }
     </style>
 </head>
@@ -184,7 +175,7 @@
             <input id="password" placeholder="Type your password here" type="password" name="password" required autocomplete="current-password">
         </div>
 
-        <button type="submit" class="login-btn">Open system</button>
+        <button type="submit" class="login-btn">Login</button>
     </form>
 </div>
 </body>

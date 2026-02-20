@@ -13,9 +13,9 @@ class OfficeSeeder extends Seeder
     public function run(): void
     {
         Office::firstOrCreate(
-            ['code' => 'MAIN'],
+            ['code' => 'TREASURY'],
             [
-                'name' => 'Main Office',
+                'name' => 'Provincial Treasury Office',
                 'address' => null,
                 'contact' => null,
                 'is_active' => true,

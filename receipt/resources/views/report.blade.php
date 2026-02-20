@@ -268,7 +268,7 @@
                 <option value="Check" {{ ($paymentMethod ?? '') == 'Check' ? 'selected' : '' }}>Check</option>
                 <option value="Money Order" {{ ($paymentMethod ?? '') == 'Money Order' ? 'selected' : '' }}>Money Order</option>
             </select>
-            <button type="submit" class="btn btn-primary">Apply</button>
+            <button type="submit" class="btn btn-success">Apply</button>
             @if(!empty($search ?? '') || !empty($dateFrom ?? '') || !empty($dateTo ?? '') || !empty($paymentMethod ?? ''))
                 <a href="{{ route('report', array_filter(request()->only('per_page'))) }}" class="btn btn-outline-secondary">Clear filters</a>
             @endif
@@ -294,7 +294,6 @@
                     data-date="{{ $r->receipt_date->format('m/d/Y') }}"
                     data-particulars="{{ e($r->description ?? '—') }}"
                     data-payment="{{ e($r->payment_method ?? '—') }}"
-                    data-office="{{ e($r->office->name ?? '—') }}"
                     data-issued-by="{{ e($r->issuer->name ?? $r->issuer->email ?? '—') }}">
                     <td class="col-or-no">{{ $r->receipt_number }}</td>
                     <td class="col-payor">{{ $r->payer_name }}</td>
@@ -340,12 +339,11 @@
                         <tr><td class="text-muted fw-bold">Payment method</td><td id="detail-payment"></td></tr>
                         <tr><td class="text-muted fw-bold">Amount</td><td id="detail-amount"></td></tr>
                         <tr><td class="text-muted fw-bold">Date</td><td id="detail-date"></td></tr>
-                        <tr><td class="text-muted fw-bold">Office</td><td id="detail-office"></td></tr>
                         <tr><td class="text-muted fw-bold">Issued by</td><td id="detail-issued-by"></td></tr>
                     </table>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -362,7 +360,6 @@
                 document.getElementById('detail-date').textContent = this.getAttribute('data-date') || '—';
                 document.getElementById('detail-particulars').textContent = this.getAttribute('data-particulars') || '—';
                 document.getElementById('detail-payment').textContent = this.getAttribute('data-payment') || '—';
-                document.getElementById('detail-office').textContent = this.getAttribute('data-office') || '—';
                 document.getElementById('detail-issued-by').textContent = this.getAttribute('data-issued-by') || '—';
                 modal.show();
             });

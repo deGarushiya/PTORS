@@ -20,6 +20,9 @@ class Receipt extends Model
         'description',
         'notes',
         'receipt_date',
+        'status',
+        'cancelled_at',
+        'cancelled_reason',
     ];
 
     protected function casts(): array
@@ -27,7 +30,18 @@ class Receipt extends Model
         return [
             'amount' => 'decimal:2',
             'receipt_date' => 'date',
+            'cancelled_at' => 'datetime',
         ];
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->status === 'cancelled';
     }
 
     public function office(): BelongsTo

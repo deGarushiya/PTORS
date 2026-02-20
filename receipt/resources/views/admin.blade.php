@@ -107,74 +107,155 @@
         }
 
         .admin-container {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 30px auto;
-            padding: 0 20px;
+            padding: 0 24px;
+        }
+
+        .admin-header {
+            margin-bottom: 28px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid rgba(13, 8, 117, 0.2);
         }
 
         .admin-title {
             font-size: 28px;
             font-weight: bold;
             color: #0d0875;
-            margin-bottom: 24px;
+            margin: 0 0 4px 0;
         }
 
-        .admin-cards {
+        .admin-subtitle {
+            font-size: 14px;
+            color: #6b7280;
+            margin: 0;
+        }
+
+        .admin-stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(2, 1fr);
             gap: 20px;
-            margin-bottom: 32px;
+            margin-bottom: 28px;
         }
 
         .admin-card {
             background: #fff;
             border-radius: 12px;
             padding: 24px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            border-left: 4px solid #0d0875;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            border: 1px solid rgba(13, 8, 117, 0.1);
+            transition: box-shadow 0.2s;
+        }
+
+        .admin-card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
         }
 
         .admin-card-title {
-            font-size: 14px;
+            font-size: 13px;
             color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             margin-bottom: 8px;
         }
 
         .admin-card-value {
-            font-size: 24px;
+            font-size: 26px;
             font-weight: bold;
             color: #0d0875;
         }
 
-        .admin-links {
+        .admin-section {
             background: #fff;
             border-radius: 12px;
             padding: 24px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            border: 1px solid rgba(13, 8, 117, 0.1);
+            margin-bottom: 24px;
         }
 
-        .admin-links-title {
-            font-size: 18px;
+        .admin-section-title {
+            font-size: 16px;
             font-weight: bold;
             color: #0d0875;
             margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .admin-links a {
-            display: inline-block;
-            padding: 12px 20px;
-            margin-right: 12px;
-            margin-bottom: 8px;
+        .admin-section-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: #0d0875;
+            border-radius: 2px;
+        }
+
+        .admin-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .admin-actions-grid a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 20px;
             background: #0d0875;
             color: #fff;
             text-decoration: none;
             border-radius: 8px;
-            font-weight: bold;
+            font-weight: 600;
+            font-size: 15px;
+            transition: background 0.2s;
         }
 
-        .admin-links a:hover {
+        .admin-actions-grid a:hover {
             background: #1810aa;
             color: #fff;
+        }
+
+        .admin-backup-inline {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .admin-backup-inline p {
+            margin: 0;
+            font-size: 13px;
+            color: #6b7280;
+            max-width: 400px;
+        }
+
+        .admin-dev-gear {
+            position: fixed;
+            bottom: 70px;
+            right: 24px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #0d0875;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            text-decoration: none;
+            transition: background 0.2s, transform 0.2s;
+            z-index: 100;
+        }
+        .admin-dev-gear:hover {
+            background: #1810aa;
+            color: #fff;
+            transform: scale(1.05);
+        }
+        .admin-dev-gear svg {
+            width: 26px;
+            height: 26px;
         }
 
         footer {
@@ -221,9 +302,12 @@
     </nav>
 
     <div class="admin-container">
-        <h1 class="admin-title">Admin</h1>
+        <div class="admin-header">
+            <h1 class="admin-title">Admin dashboard</h1>
+            <p class="admin-subtitle">Overview and quick actions</p>
+        </div>
 
-        <div class="admin-cards">
+        <div class="admin-stats">
             <div class="admin-card">
                 <div class="admin-card-title">Total receipts</div>
                 <div class="admin-card-value">{{ number_format($receiptsCount) }}</div>
@@ -232,18 +316,39 @@
                 <div class="admin-card-title">Total amount</div>
                 <div class="admin-card-value">₱ {{ number_format($receiptsTotal, 2, '.', ',') }}</div>
             </div>
-            <div class="admin-card">
-                <div class="admin-card-title">Active offices</div>
-                <div class="admin-card-value">{{ $officesCount }}</div>
+        </div>
+
+        <div class="admin-section">
+            <div class="admin-section-title">Quick actions</div>
+            <div class="admin-actions-grid">
+                <a href="{{ route('user') }}">New receipt</a>
+                <a href="{{ route('report') }}">View reports</a>
             </div>
         </div>
 
-        <div class="admin-links">
-            <div class="admin-links-title">Quick links</div>
-            <a href="{{ route('user') }}">New receipt</a>
-            <a href="{{ route('report') }}">View reports</a>
+        <div class="admin-section">
+            <div class="admin-section-title">Backup</div>
+            @if(session('success'))
+                <div class="alert alert-success mb-3">{{ session('success') }}</div>
+            @endif
+            @if(session('error'))
+                <div class="alert alert-danger mb-3">{{ session('error') }}</div>
+            @endif
+            <div class="admin-backup-inline">
+                <form method="POST" action="{{ route('admin.backup') }}">
+                    @csrf
+                    <button type="submit" class="btn btn-success">Run backup now</button>
+                </form>
+                <p>Backups are saved to the configured folder (e.g. Google Drive). A daily backup runs at 1:00 AM.</p>
+            </div>
         </div>
     </div>
+
+    <a href="{{ route('developer') }}" class="admin-dev-gear" title="Developer options" aria-label="Developer options">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.65.07-1 0-.35-.03-.68-.07-1l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65A.488.488 0 0 0 12 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.32-.07.65-.07 1 0 .35.03.68.07 1l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65z"/>
+        </svg>
+    </a>
 
     <footer>
         <p>@2026</p>

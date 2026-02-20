@@ -58,14 +58,14 @@
         .modal-backdrop { z-index: 1055 !important; }
 
         nav {
-            list-style-type: none;
-            margin: 0;
-            padding: 15px 0 0 0;
-            overflow: hidden;
-            background-color: #0d0875;
-            position: fixed;
-            top: 0;
-            width: 100%;
+        list-style-type: none;
+        margin: 0;
+        padding: 15px 0 0 0;
+        overflow: hidden;
+        background-color: #0d0875;
+        position: fixed;
+        top: 0;
+        width: 100%;
         }
 
         .nav img{
@@ -228,7 +228,7 @@
         if (session('error')) { $msgType = 'warning'; $msgContent = session('error'); }
         elseif (session('success')) { $msgType = 'success'; $msgContent = session('success'); }
         elseif ($errors->any()) { $msgType = 'danger'; $msgContent = '<ul>'.implode('', array_map(fn($e)=>'<li>'.e($e).'</li>', $errors->all())).'</ul>'; }
-        elseif ($offices->isEmpty()) { $msgType = 'warning'; $msgContent = 'No office configured. Run php artisan db:seed to create the default office.'; }
+        elseif (!isset($office)) { $msgType = 'warning'; $msgContent = 'No office configured. Run php artisan db:seed to create the default office.'; }
     @endphp
     @if($msgType)
     <script>
@@ -257,10 +257,10 @@
         };
     }
     </script>
-    @if(!$offices->isEmpty())
+    @if(isset($office))
     <form method="POST" action="{{ route('receipts.store') }}" class="receipt-container">
         @csrf
-        <input type="hidden" name="office_id" value="{{ $offices->first()->id }}">
+        <input type="hidden" name="office_id" value="{{ $office->id }}">
         <div class="container text-center">
             <div class="row row-cols-4" style="border: solid 1px #000; padding-top: 20px;">
                 <div class="col" style="border:none;">
@@ -306,12 +306,9 @@
                 <div class="col" style="padding: 10px; text-align: left;">Particulars 
                     <select id="particulars" name="description" style="width: 50%; height: 30px;">
                         <option value="">— Select —</option>
-                        <option value="Settlement of Cash Advance" {{ old('description') == 'Settlement of Cash Advance' ? 'selected' : '' }}>Settlement of Cash Advance</option>
-                        <option value="Liquidation of Cash Advance" {{ old('description') == 'Liquidation of Cash Advance' ? 'selected' : '' }}>Liquidation of Cash Advance</option>
-                        <option value="Remittance of Banaan Provincial Museum Shop Sale" {{ old('description') == 'Remittance of Banaan Provincial Museum Shop Sale' ? 'selected' : '' }}>Remittance of Banaan Provincial Museum Shop Sale</option>
-                        <option value="Payment of 25% Government LGU Share" {{ old('description') == 'Payment of 25% Government LGU Share' ? 'selected' : '' }}>Payment of 25% Government LGU Share</option>
-                        <option value="Refund of Unexpected Cash Advance" {{ old('description') == 'Refund of Unexpected Cash Advance' ? 'selected' : '' }}>Refund of Unexpected Cash Advance</option>
-                        <option value="Maip" {{ old('description') == 'Maip' ? 'selected' : '' }}>Maip</option>
+                        @foreach($particulars ?? [] as $p)
+                            <option value="{{ $p->name }}" {{ old('description') == $p->name ? 'selected' : '' }}>{{ $p->name }}</option>
+                        @endforeach
                     </select>
                 </div>
             </div>
@@ -384,9 +381,12 @@
                 </div>
             </div>
         </div>
-        <div class="container text-center" style="background-color: #ffffff00 !important;">
-            <button type="submit" class="btn btn-primary me-2" style="min-width: 140px;">Save receipt</button>
-            <button type="button" class="btn btn-secondary" style="min-width: 140px;" onclick="window.print();">Print</button>
+        <div class="container text-center d-flex justify-content-between align-items-center flex-wrap gap-2" style="background-color: #ffffff00 !important;">
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelledOrModal" style="min-width: 140px;">Record cancelled OR</button>
+            <div>
+                <button type="submit" class="btn btn-success me-2" style="min-width: 140px;">Save receipt</button>
+                <button type="button" class="btn btn-primary" style="min-width: 140px;" onclick="window.print();">Print</button>
+            </div>
         </div>
     </form>
     @endif
@@ -396,7 +396,44 @@
     </footer>
     </div>
 
-    <!-- Modal (outside content layer so it displays above backdrop) -->
+    @if(isset($office))
+    <!-- Record cancelled OR modal (outside content layer so it displays above backdrop) -->
+    <div class="modal fade" id="cancelledOrModal" tabindex="-1" aria-modal="true" aria-labelledby="cancelledOrModalLabel">
+  <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" action="{{ route('receipts.storeCancelled') }}">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="cancelledOrModalLabel">Record cancelled OR</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="cancelled_receipt_number" class="form-label">OR number <span class="text-danger">*</span></label>
+                            <input type="text" name="receipt_number" id="cancelled_receipt_number" class="form-control" placeholder="7 digits" maxlength="7" pattern="[0-9]{7}" value="{{ old('receipt_number') }}" required>
+                            @error('receipt_number')<div class="text-danger small">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="mb-3">
+                            <label for="cancelled_receipt_date" class="form-label">Date <span class="text-danger">*</span></label>
+                            <input type="date" name="receipt_date" id="cancelled_receipt_date" class="form-control" value="{{ old('receipt_date', date('Y-m-d')) }}" required>
+                        </div>
+                        <input type="hidden" name="office_id" value="{{ $office->id }}">
+                        <div class="mb-3">
+                            <label for="cancelled_reason" class="form-label">Reason (optional)</label>
+                            <textarea name="cancelled_reason" id="cancelled_reason" class="form-control" rows="2" placeholder="e.g. Spoiled, wrong amount...">{{ old('cancelled_reason') }}</textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success">Save cancelled OR</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- Particulars modal (outside content layer so it displays above backdrop) -->
 <div class="modal fade" id="particularsModal" tabindex="-1" style="float: center;">
   <div class="modal-dialog" style="max-width: 1000px; overflow-y: auto;">
     <div class="modal-content">
@@ -408,7 +445,7 @@
             <!--  -->
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" id="particularsModalEnterBtn" data-bs-dismiss="modal">Enter</button>
+        <button type="button" class="btn btn-success" id="particularsModalEnterBtn" data-bs-dismiss="modal">Enter</button>
       </div>
     </div>
   </div>
@@ -494,7 +531,7 @@ document.getElementById("particulars").addEventListener("change", function() {
             content = `
                 <div class="row">
                     <div class="col-6">Total Sales</div>
-                    <div class="col-6"><input type="text" class="form-control"></div>
+                    <div class="col-6"><input type="text" class="form-control" id="simpleAmountInput" placeholder="0.00"></div>
                 </div>
             `;
         break;
@@ -504,7 +541,7 @@ document.getElementById("particulars").addEventListener("change", function() {
             content = `
                 <div class="row">
                     <div class="col-6">LGU Share</div>
-                    <div class="col-6"><input type="text" class="form-control"></div>
+                    <div class="col-6"><input type="text" class="form-control" id="simpleAmountInput" placeholder="0.00"></div>
                 </div>
             `;
         break;
@@ -514,14 +551,29 @@ document.getElementById("particulars").addEventListener("change", function() {
             content = `
                 <div class="row">
                     <div class="col-6">Refund Amount</div>
-                    <div class="col-6"><input type="text" class="form-control"></div>
+                    <div class="col-6"><input type="text" class="form-control" id="simpleAmountInput" placeholder="0.00"></div>
+                </div>
+            `;
+        break;
+
+        case "Maip":
+            modalTitle.innerText = "Maip";
+            content = `
+                <div class="row">
+                    <div class="col-6">Amount</div>
+                    <div class="col-6"><input type="text" class="form-control" id="simpleAmountInput" placeholder="0.00"></div>
                 </div>
             `;
         break;
 
         default:
             modalTitle.innerText = this.options[this.selectedIndex].text;
-            content = `<p>No form available.</p>`;
+            content = `
+                <div class="row">
+                    <div class="col-6">Amount</div>
+                    <div class="col-6"><input type="text" class="form-control" id="simpleAmountInput" placeholder="0.00"></div>
+                </div>
+            `;
     }
 
     modalBody.innerHTML = content;
@@ -658,11 +710,11 @@ document.getElementById("particulars").addEventListener("change", function() {
         });
     }
 
-    let modal = new bootstrap.Modal(
-        document.getElementById('particularsModal')
-    );
+        let modal = new bootstrap.Modal(
+            document.getElementById('particularsModal')
+        );
 
-    modal.show();
+        modal.show();
 
 });
 </script>
@@ -675,6 +727,8 @@ document.getElementById('particularsModalEnterBtn').addEventListener('click', fu
         populateSettlementToReceipt();
     } else if (particulars === 'Liquidation of Cash Advance') {
         populateLiquidationToReceipt();
+    } else {
+        populateSimpleToReceipt();
     }
 });
 
@@ -728,11 +782,21 @@ function populateLiquidationToReceipt() {
     if (totalAmountDisplay) totalAmountDisplay.textContent = formatNumberReceipt(amountNum);
     if (typeof updateAmountInWords === 'function') updateAmountInWords();
 }
-</script>
 
-<!-- Script for RCD (only runs when Settlement modal is open; main logic is in particulars change handler above) -->
-<script>
-// No global RCD init - elements exist only inside the Settlement modal after it's shown
+function populateSimpleToReceipt() {
+    var input = document.getElementById('simpleAmountInput');
+    var particularsSelect = document.getElementById('particulars');
+    var receiptNatureRows = document.getElementById('receiptNatureRows');
+    var totalAmountDisplay = document.getElementById('totalAmountDisplay');
+    if (!receiptNatureRows || !particularsSelect) return;
+    var particularName = particularsSelect.value;
+    var amountNum = 0;
+    if (input) amountNum = parseFloat(input.value.replace(/,/g, '')) || 0;
+    var rows = '<div class="row row-cols-3"><div class="col" style="padding: 10px; text-align: left;">' + particularName.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div><div class="col" style="padding: 10px; text-align: left;"></div><div class="col" style="padding: 10px; text-align: right;">P <input type="number" step="0.01" min="0" name="amount" id="receiptAmountInput" value="' + amountNum + '" style="width: 90%; text-align: right;" required></div></div>';
+    receiptNatureRows.innerHTML = rows;
+    if (totalAmountDisplay) totalAmountDisplay.textContent = formatNumberReceipt(amountNum);
+    if (typeof updateAmountInWords === 'function') updateAmountInWords();
+}
 </script>
 
 <!-- Check Modal -->
@@ -756,7 +820,7 @@ function populateLiquidationToReceipt() {
         </div>
       </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Enter</button>
+            <button type="button" class="btn btn-success" data-bs-dismiss="modal">Enter</button>
         </div>
     </div>
   </div>
@@ -781,7 +845,7 @@ function populateLiquidationToReceipt() {
         </div>
       </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Enter</button>
+            <button type="button" class="btn btn-success" data-bs-dismiss="modal">Enter</button>
         </div>
     </div>
   </div>

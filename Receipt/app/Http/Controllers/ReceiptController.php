@@ -51,6 +51,40 @@ class ReceiptController extends Controller
         return redirect()->route('user')->with('success', 'Receipt saved successfully.');
     }
 
+    /**
+     * Store a cancelled OR record.
+     */
+    public function storeCancelled(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'receipt_number' => ['required', 'digits:7', 'unique:receipts,receipt_number'],
+            'receipt_date' => ['required', 'date'],
+            'office_id' => ['required', 'exists:offices,id'],
+            'cancelled_reason' => ['nullable', 'string', 'max:500'],
+        ], [
+            'receipt_number.required' => 'Please input the OR number.',
+            'receipt_number.digits' => 'The OR number must be exactly 7 digits.',
+            'receipt_number.unique' => 'This OR number already exists.',
+        ]);
+
+        Receipt::create([
+            'receipt_number' => trim($validated['receipt_number']),
+            'office_id' => $validated['office_id'],
+            'issued_by' => Auth::id(),
+            'payer_name' => 'CANCELLED OR',
+            'amount' => 0,
+            'payment_method' => null,
+            'description' => 'Cancelled official receipt',
+            'notes' => $validated['cancelled_reason'] ?? null,
+            'receipt_date' => $validated['receipt_date'],
+            'status' => 'cancelled',
+            'cancelled_at' => now(),
+            'cancelled_reason' => $validated['cancelled_reason'] ?? null,
+        ]);
+
+        return redirect()->route('user')->with('success', 'Cancelled OR recorded successfully.');
+    }
+
     private function generateReceiptNumber(int $officeId): string
     {
         $year = date('Y');
