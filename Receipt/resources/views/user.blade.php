@@ -152,6 +152,10 @@
         .msg-popup .msg-footer {
             padding: 12px 24px 20px;
             text-align: right;
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
         }
         .msg-popup .msg-btn {
             padding: 10px 28px;
@@ -165,6 +169,7 @@
         .msg-popup .msg-btn:hover { opacity: 0.9; }
         .msg-popup.msg-success .msg-body { background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); color: #1b5e20; }
         .msg-popup.msg-success .msg-btn { background: #2e7d32; color: #fff; }
+        .msg-popup.msg-success .msg-btn-print { background: #0d6efd; color: #fff; }
         .msg-popup.msg-warning .msg-body { background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%); color: #e65100; }
         .msg-popup.msg-warning .msg-btn { background: #f57c00; color: #fff; }
         .msg-popup.msg-danger .msg-body { background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); color: #b71c1c; }
@@ -219,41 +224,54 @@
     <div id="msgPopupOverlay" class="msg-popup-overlay" role="dialog" aria-modal="true" aria-labelledby="msgPopupTitle">
         <div id="msgPopup" class="msg-popup" style="display: none;">
             <div class="msg-body" id="msgPopupBody"></div>
-            <div class="msg-footer"><button type="button" class="msg-btn" id="msgPopupOk">OK</button></div>
+            <div class="msg-footer" id="msgPopupFooter"></div>
         </div>
     </div>
     @php
         $msgType = null;
         $msgContent = '';
+        $msgShowPrint = false;
         if (session('error')) { $msgType = 'warning'; $msgContent = session('error'); }
-        elseif (session('success')) { $msgType = 'success'; $msgContent = session('success'); }
+        elseif (session('success')) {
+            $msgType = 'success';
+            $msgContent = session('success');
+            $msgShowPrint = session('success_receipt_saved', false);
+        }
         elseif ($errors->any()) { $msgType = 'danger'; $msgContent = '<ul>'.implode('', array_map(fn($e)=>'<li>'.e($e).'</li>', $errors->all())).'</ul>'; }
         elseif (!isset($office)) { $msgType = 'warning'; $msgContent = 'No office configured. Run php artisan db:seed to create the default office.'; }
     @endphp
     @if($msgType)
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        showMsgPopup({!! json_encode($msgType) !!}, {!! json_encode($msgContent) !!});
+        showMsgPopup({!! json_encode($msgType) !!}, {!! json_encode($msgContent) !!}, {{ $msgShowPrint ? 'true' : 'false' }});
     });
     </script>
     @endif
     <script>
-    function showMsgPopup(type, html) {
+    function showMsgPopup(type, html, showPrint) {
         var overlay = document.getElementById('msgPopupOverlay');
         var popup = document.getElementById('msgPopup');
         var body = document.getElementById('msgPopupBody');
-        var btn = document.getElementById('msgPopupOk');
-        if (!overlay || !popup || !body) return;
+        var footer = document.getElementById('msgPopupFooter');
+        if (!overlay || !popup || !body || !footer) return;
         popup.className = 'msg-popup msg-' + type;
         body.innerHTML = html;
         overlay.classList.add('show');
         popup.style.display = 'block';
-        btn.onclick = function() {
+        function closePopup() {
             overlay.classList.remove('show');
             popup.style.display = 'none';
-        };
+        }
+        if (showPrint) {
+            footer.innerHTML = '<button type="button" class="msg-btn msg-btn-print" id="msgPopupPrint">Print</button><button type="button" class="msg-btn" id="msgPopupOk">OK</button>';
+            document.getElementById('msgPopupPrint').onclick = function() { window.print(); };
+            document.getElementById('msgPopupOk').onclick = closePopup;
+        } else {
+            footer.innerHTML = '<button type="button" class="msg-btn" id="msgPopupOk">OK</button>';
+            document.getElementById('msgPopupOk').onclick = closePopup;
+        }
         overlay.onclick = function(e) {
-            if (e.target === overlay) btn.onclick();
+            if (e.target === overlay) closePopup();
         };
     }
     </script>

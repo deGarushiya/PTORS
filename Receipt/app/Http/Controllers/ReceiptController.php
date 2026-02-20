@@ -48,7 +48,9 @@ class ReceiptController extends Controller
             'receipt_date' => $validated['receipt_date'],
         ]);
 
-        return redirect()->route('user')->with('success', 'Receipt saved successfully.');
+        return redirect()->route('user')
+            ->with('success', 'Receipt saved successfully.')
+            ->with('success_receipt_saved', true);
     }
 
     /**
