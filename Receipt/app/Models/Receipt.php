@@ -17,6 +17,9 @@ class Receipt extends Model
         'payer_name',
         'amount',
         'payment_method',
+        'check_bank_name',
+        'check_number',
+        'check_date',
         'description',
         'notes',
         'receipt_date',
@@ -30,6 +33,7 @@ class Receipt extends Model
         return [
             'amount' => 'decimal:2',
             'receipt_date' => 'date',
+            'check_date' => 'date',
             'cancelled_at' => 'datetime',
         ];
     }

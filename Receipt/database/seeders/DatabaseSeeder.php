@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(OfficeSeeder::class);
         $this->call(ParticularSeeder::class);
+        $this->call(BankSeeder::class);
 
         // User::factory(10)->create();
         User::firstOrCreate(

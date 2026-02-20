@@ -271,7 +271,7 @@
             text-align: center;
             font-size: 15px;
             font-weight: bolder;
-            font-family: "Times New Roman", Times, serif;
+            font-family: "Lucida Console", "Courier New", monospace;
             color: #fff;
         }
     </style>
@@ -351,7 +351,7 @@
     </a>
 
     <footer>
-        <p>@2026</p>
+        <p class="mb-0 pt-2">Designed and Developed by Marzel Yna Carlet &amp; Gerard Garcia</p>
     </footer>
     </div>
 </body>

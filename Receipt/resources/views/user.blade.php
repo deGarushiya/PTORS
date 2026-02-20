@@ -189,7 +189,7 @@
             text-align: center;
             font-size: 15px;
             font-weight: bolder;
-            font-family: "Times New Roman", Times, serif;
+            font-family: "Lucida Console", "Courier New", monospace;
             color: #fff;
         }
     </style>
@@ -279,6 +279,9 @@
     <form method="POST" action="{{ route('receipts.store') }}" class="receipt-container">
         @csrf
         <input type="hidden" name="office_id" value="{{ $office->id }}">
+        <input type="hidden" name="check_bank_name" id="checkBankHidden" value="">
+        <input type="hidden" name="check_number" id="checkNumberHidden" value="">
+        <input type="hidden" name="check_date" id="checkDateHidden" value="">
         <div class="container text-center">
             <div class="row row-cols-4" style="border: solid 1px #000; padding-top: 20px;">
                 <div class="col" style="border:none;">
@@ -365,9 +368,9 @@
                     <input type="radio" id="Check" name="payment_method" value="Check" {{ old('payment_method') == 'Check' ? 'checked' : '' }}>
                     <label for="Check"> Check</label>
                 </div>
-                <div class="col"></div>
-                <div class="col"></div>
-                <div class="col"></div>
+                <div class="col" id="receiptCheckBank" style="padding: 4px;"></div>
+                <div class="col" id="receiptCheckNumber" style="padding: 4px;"></div>
+                <div class="col" id="receiptCheckDate" style="padding: 4px;"></div>
                 
                 <div class="col" style="border:none; text-align: left;">
                     <input type="radio" id="MoneyOrder" name="payment_method" value="Money Order" {{ old('payment_method') == 'Money Order' ? 'checked' : '' }}>
@@ -410,7 +413,7 @@
     @endif
 
     <footer>
-        <p>@2026</p>
+        <p class="mb-0 pt-2">Designed and Developed by Marzel Yna Carlet &amp; Gerard Garcia</p>
     </footer>
     </div>
 
@@ -832,13 +835,20 @@ function populateSimpleToReceipt() {
             <div class="col">Date</div>
         </div>
         <div class="row row-cols-3">
-            <div class="col" style="padding: 10px;"><input type="text" style="width: 100%; text-align: center;"></div>
-            <div class="col" style="padding: 10px;"><input type="text" style="width: 100%; text-align: center;"></div>
-            <div class="col" style="padding: 10px;"><input type="text" style="width: 100%; text-align: center;"></div>
+            <div class="col" style="padding: 10px;">
+                <select id="checkBankInput" class="form-select" style="width: 100%;">
+                    <option value="">— Select bank —</option>
+                    @foreach($banks ?? [] as $bank)
+                        <option value="{{ $bank->name }}">{{ $bank->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col" style="padding: 10px;"><input type="text" id="checkNumberInput" style="width: 100%; text-align: center;" placeholder="Check number"></div>
+            <div class="col" style="padding: 10px;"><input type="date" id="checkDateInput" class="form-control" style="width: 100%;"></div>
         </div>
       </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-success" data-bs-dismiss="modal">Enter</button>
+            <button type="button" class="btn btn-success" id="checkModalEnterBtn" data-bs-dismiss="modal">Enter</button>
         </div>
     </div>
   </div>
@@ -858,12 +868,12 @@ function populateSimpleToReceipt() {
             <div class="col">Date</div>
         </div>
         <div class="row row-cols-2">
-            <div class="col" style="padding: 10px;"><input type="text" style="width: 100%; text-align: center;"></div>
-            <div class="col" style="padding: 10px;"><input type="text" style="width: 100%; text-align: center;"></div>
+            <div class="col" style="padding: 10px;"><input type="text" id="moneyOrderNumberInput" class="form-control" style="width: 100%; text-align: center;" placeholder="Number"></div>
+            <div class="col" style="padding: 10px;"><input type="date" id="moneyOrderDateInput" class="form-control" style="width: 100%;"></div>
         </div>
       </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-success" data-bs-dismiss="modal">Enter</button>
+            <button type="button" class="btn btn-success" id="moneyOrderModalEnterBtn" data-bs-dismiss="modal">Enter</button>
         </div>
     </div>
   </div>
@@ -871,34 +881,38 @@ function populateSimpleToReceipt() {
 
 <!-- Script for check and money order-->
 <script>
-    const checkboxes = document.querySelectorAll(
-        '#Cash, #Check, #MoneyOrder'
-    );
+    const checkboxes = document.querySelectorAll('#Cash, #Check, #MoneyOrder');
 
     checkboxes.forEach(box => {
         box.addEventListener('change', function () {
-
-            // Uncheck others
-            checkboxes.forEach(cb => {
-                if (cb !== this) cb.checked = false;
-            });
-
+            checkboxes.forEach(cb => { if (cb !== this) cb.checked = false; });
             if (this.checked) {
                 if (this.id === "Check") {
-                    const checkModal = new bootstrap.Modal(
-                        document.getElementById('checkModal')
-                    );
-                    checkModal.show();
+                    new bootstrap.Modal(document.getElementById('checkModal')).show();
                 }
-
                 if (this.id === "MoneyOrder") {
-                    const moneyModal = new bootstrap.Modal(
-                        document.getElementById('moneyOrderModal')
-                    );
-                    moneyModal.show();
+                    new bootstrap.Modal(document.getElementById('moneyOrderModal')).show();
                 }
             }
         });
+    });
+
+    document.getElementById('checkModalEnterBtn').addEventListener('click', function() {
+        var bank = document.getElementById('checkBankInput');
+        var num = document.getElementById('checkNumberInput');
+        var date = document.getElementById('checkDateInput');
+        var bankVal = bank ? bank.value : '';
+        var numVal = num ? num.value : '';
+        var dateVal = date ? date.value : '';
+        document.getElementById('receiptCheckBank').textContent = bankVal;
+        document.getElementById('receiptCheckNumber').textContent = numVal;
+        document.getElementById('receiptCheckDate').textContent = dateVal;
+        var bankHidden = document.getElementById('checkBankHidden');
+        var numHidden = document.getElementById('checkNumberHidden');
+        var dateHidden = document.getElementById('checkDateHidden');
+        if (bankHidden) bankHidden.value = bankVal;
+        if (numHidden) numHidden.value = numVal;
+        if (dateHidden) dateHidden.value = dateVal;
     });
 </script>
 <script>

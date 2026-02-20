@@ -218,7 +218,7 @@
             text-align: center;
             font-size: 15px;
             font-weight: bolder;
-            font-family: "Times New Roman", Times, serif;
+            font-family: "Lucida Console", "Courier New", monospace;
             color: #fff;
         }
     </style>
@@ -294,7 +294,10 @@
                     data-date="{{ $r->receipt_date->format('m/d/Y') }}"
                     data-particulars="{{ e($r->description ?? '—') }}"
                     data-payment="{{ e($r->payment_method ?? '—') }}"
-                    data-issued-by="{{ e($r->issuer->name ?? $r->issuer->email ?? '—') }}">
+                    data-issued-by="{{ e($r->issuer->name ?? $r->issuer->email ?? '—') }}"
+                    data-check-bank="{{ e($r->check_bank_name ?? '') }}"
+                    data-check-number="{{ e($r->check_number ?? '') }}"
+                    data-check-date="{{ $r->check_date ? $r->check_date->format('m/d/Y') : '' }}">
                     <td class="col-or-no">{{ $r->receipt_number }}</td>
                     <td class="col-payor">{{ $r->payer_name }}</td>
                     <td class="col-particulars">{{ $r->description ?? '—' }}</td>
@@ -319,7 +322,7 @@
     @endif
 
     <footer>
-        <p>@2026</p>
+        <p class="mb-0 pt-2">Designed and Developed by Marzel Yna Carlet &amp; Gerard Garcia</p>
     </footer>
     </div>
 
@@ -337,6 +340,10 @@
                         <tr><td class="text-muted fw-bold">Payor</td><td id="detail-payor"></td></tr>
                         <tr><td class="text-muted fw-bold">Particulars</td><td id="detail-particulars"></td></tr>
                         <tr><td class="text-muted fw-bold">Payment method</td><td id="detail-payment"></td></tr>
+                        <tr id="detail-check-row" style="display: none;">
+                            <td class="text-muted fw-bold">Bank details</td>
+                            <td id="detail-check-details"></td>
+                        </tr>
                         <tr><td class="text-muted fw-bold">Amount</td><td id="detail-amount"></td></tr>
                         <tr><td class="text-muted fw-bold">Date</td><td id="detail-date"></td></tr>
                         <tr><td class="text-muted fw-bold">Issued by</td><td id="detail-issued-by"></td></tr>
@@ -361,6 +368,18 @@
                 document.getElementById('detail-particulars').textContent = this.getAttribute('data-particulars') || '—';
                 document.getElementById('detail-payment').textContent = this.getAttribute('data-payment') || '—';
                 document.getElementById('detail-issued-by').textContent = this.getAttribute('data-issued-by') || '—';
+                var payment = this.getAttribute('data-payment') || '';
+                var checkRow = document.getElementById('detail-check-row');
+                var checkDetails = document.getElementById('detail-check-details');
+                if (payment === 'Check') {
+                    var bank = this.getAttribute('data-check-bank') || '—';
+                    var num = this.getAttribute('data-check-number') || '—';
+                    var date = this.getAttribute('data-check-date') || '—';
+                    checkDetails.textContent = 'Bank: ' + bank + ' | Check no: ' + num + ' | Date: ' + date;
+                    checkRow.style.display = '';
+                } else {
+                    checkRow.style.display = 'none';
+                }
                 modal.show();
             });
         });

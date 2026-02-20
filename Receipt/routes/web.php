@@ -41,7 +41,8 @@ Route::middleware('auth')->group(function () {
             ['name' => 'Provincial Treasury Office', 'address' => null, 'contact' => null, 'is_active' => true]
         );
         $particulars = \App\Models\Particular::active()->ordered()->get() ?? collect();
-        return view('user', ['office' => $office, 'particulars' => $particulars]);
+        $banks = \App\Models\Bank::ordered()->get() ?? collect();
+        return view('user', ['office' => $office, 'particulars' => $particulars, 'banks' => $banks]);
     })->name('user');
 
     Route::post('/receipts', [ReceiptController::class, 'store'])->name('receipts.store');
@@ -101,6 +102,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/developer/particulars', [DeveloperController::class, 'storeParticular'])->name('developer.particulars.store');
     Route::put('/developer/particulars/{particular}', [DeveloperController::class, 'updateParticular'])->name('developer.particulars.update');
     Route::delete('/developer/particulars/{particular}', [DeveloperController::class, 'destroyParticular'])->name('developer.particulars.destroy');
+    Route::post('/developer/banks', [DeveloperController::class, 'storeBank'])->name('developer.banks.store');
+    Route::delete('/developer/banks/{bank}', [DeveloperController::class, 'destroyBank'])->name('developer.banks.destroy');
 
     Route::post('/admin/backup', function () {
         if (!Auth::user()->isAdmin()) {
