@@ -307,11 +307,10 @@
                     <select id="particulars" name="description" style="width: 50%; height: 30px;">
                         <option value="">— Select —</option>
                         <option value="Settlement of Cash Advance" {{ old('description') == 'Settlement of Cash Advance' ? 'selected' : '' }}>Settlement of Cash Advance</option>
+                        <option value="Liquidation of Cash Advance" {{ old('description') == 'Liquidation of Cash Advance' ? 'selected' : '' }}>Liquidation of Cash Advance</option>
                         <option value="Remittance of Banaan Provincial Museum Shop Sale" {{ old('description') == 'Remittance of Banaan Provincial Museum Shop Sale' ? 'selected' : '' }}>Remittance of Banaan Provincial Museum Shop Sale</option>
                         <option value="Payment of 25% Government LGU Share" {{ old('description') == 'Payment of 25% Government LGU Share' ? 'selected' : '' }}>Payment of 25% Government LGU Share</option>
                         <option value="Refund of Unexpected Cash Advance" {{ old('description') == 'Refund of Unexpected Cash Advance' ? 'selected' : '' }}>Refund of Unexpected Cash Advance</option>
-                        <option value="Cancelled OR" {{ old('description') == 'Cancelled OR' ? 'selected' : '' }}>Cancelled OR</option>
-                        <option value="Partial Payment of Loan" {{ old('description') == 'Partial Payment of Loan' ? 'selected' : '' }}>Partial Payment of Loan</option>
                         <option value="Maip" {{ old('description') == 'Maip' ? 'selected' : '' }}>Maip</option>
                     </select>
                 </div>
@@ -428,6 +427,16 @@ document.getElementById("particulars").addEventListener("change", function() {
     let content = "";
 
     switch(value) {
+
+        case "Liquidation of Cash Advance":
+            modalTitle.innerText = "Liquidation of Cash Advance";
+            content = `
+                <div class="row">
+                    <div class="col-6">Amount</div>
+                    <div class="col-6"><input type="text" class="form-control" id="liquidationAmountInput" placeholder="0.00"></div>
+                </div>
+            `;
+        break;
 
         case "Settlement of Cash Advance":
             modalTitle.innerText = "Settlement of Cash Advance";
@@ -658,11 +667,15 @@ document.getElementById("particulars").addEventListener("change", function() {
 });
 </script>
 
-<!-- Populate receipt from Settlement of Cash Advance modal when Enter is clicked -->
+<!-- Populate receipt from particulars modal when Enter is clicked -->
 <script>
 document.getElementById('particularsModalEnterBtn').addEventListener('click', function() {
-    if (document.getElementById('particulars').value !== 'Settlement of Cash Advance') return;
-    populateSettlementToReceipt();
+    var particulars = document.getElementById('particulars').value;
+    if (particulars === 'Settlement of Cash Advance') {
+        populateSettlementToReceipt();
+    } else if (particulars === 'Liquidation of Cash Advance') {
+        populateLiquidationToReceipt();
+    }
 });
 
 function formatNumberReceipt(num) {
@@ -701,6 +714,18 @@ function populateSettlementToReceipt() {
     rows += '<div class="row row-cols-3"><div class="col" style="padding: 10px; text-align: left;">Cash Refund:</div><div class="col" style="padding: 10px; text-align: left;">' + formatNumberReceipt(cashRefundNum) + '</div><div class="col" style="text-align: right;"></div></div>';
     receiptNatureRows.innerHTML = rows;
     if (totalAmountDisplay) totalAmountDisplay.textContent = formatNumberReceipt(totalNum);
+    if (typeof updateAmountInWords === 'function') updateAmountInWords();
+}
+
+function populateLiquidationToReceipt() {
+    var input = document.getElementById('liquidationAmountInput');
+    var receiptNatureRows = document.getElementById('receiptNatureRows');
+    var totalAmountDisplay = document.getElementById('totalAmountDisplay');
+    if (!input || !receiptNatureRows) return;
+    var amountNum = parseFloat(input.value.replace(/,/g, '')) || 0;
+    var rows = '<div class="row row-cols-3"><div class="col" style="padding: 10px; text-align: left;">Liquidation of Cash Advance</div><div class="col" style="padding: 10px; text-align: left;"></div><div class="col" style="padding: 10px; text-align: right;">P <input type="number" step="0.01" min="0" name="amount" id="receiptAmountInput" value="' + amountNum + '" style="width: 90%; text-align: right;" required></div></div>';
+    receiptNatureRows.innerHTML = rows;
+    if (totalAmountDisplay) totalAmountDisplay.textContent = formatNumberReceipt(amountNum);
     if (typeof updateAmountInWords === 'function') updateAmountInWords();
 }
 </script>
