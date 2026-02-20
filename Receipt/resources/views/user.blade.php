@@ -70,7 +70,7 @@
 
         .nav img{
             font-size: 16px;
-            color: #fff;
+            color: #ffffff;
             font-weight: bolder;
             font-family: "Times New Roman", Times, serif;
             margin: 0 50px 0 50px;
@@ -98,6 +98,11 @@
 
         .nav-link:hover{
             color: #fff;
+        }
+
+        .active
+        {
+            background-color: #D8E1ED !important;
         }
 
         .nav-item .logout{
@@ -313,7 +318,7 @@
             </div>
             <div class="row row-cols-3">
                 <div class="col" style="text-align: center; font-weight: bold;">Nature of Collection</div>
-                <div class="col" style="text-align: center; font-weight: bold;">Account Code</div>
+                <div class="col" style="text-align: center; font-weight: bold;"></div>
                 <div class="col" style="text-align: center; font-weight: bold;">Amount</div>
             </div>
             <div id="receiptNatureRows">
@@ -370,7 +375,9 @@
                     </h6>
                 </div>
             </div>
-            <div class="row row-cols-1" style="background-color: #ffffff !important;">
+        </div>
+        <div class="container text-center" style="background-color: #ffffff00 !important;">
+            <div class="row row-cols-1" style="background-color: #ffffff00 !important;">
                 <div class="col" style="border:none">
                     <p style="font-size: 12px; text-align: left;">
                         NOTE: Write the number and date of this receipt on the back of check or money order received.
@@ -378,7 +385,7 @@
                 </div>
             </div>
         </div>
-        <div class="container text-center" style="background-color: #ffffff !important;">
+        <div class="container text-center" style="background-color: #ffffff00 !important;">
             <button type="submit" class="btn btn-primary me-2" style="min-width: 140px;">Save receipt</button>
             <button type="button" class="btn btn-secondary" style="min-width: 140px;" onclick="window.print();">Print</button>
         </div>

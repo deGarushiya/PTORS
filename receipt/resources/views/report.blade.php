@@ -100,6 +100,11 @@
             color: #fff;
         }
 
+        .active
+        {
+            background-color: #D8E1ED !important;
+        }
+
         .nav-item .logout{
             float: right !important;
         }
@@ -275,9 +280,9 @@
                 <tr>
                     <th scope="col" class="col-or-no">OR No</th>
                     <th scope="col" class="col-payor">Payor</th>
-                    <th scope="col" class="col-amount" style="text-align: right;">Amount</th>
-                    <th scope="col" class="col-date">Date</th>
                     <th scope="col" class="col-particulars">Particulars</th>
+                    <th scope="col" class="col-amount" style="text-align: right;">Amount</th>
+                    <th scope="col" class="col-date" style="width: 150px;">Date</th>
                 </tr>
             </thead>
             <tbody>
@@ -293,9 +298,9 @@
                     data-issued-by="{{ e($r->issuer->name ?? $r->issuer->email ?? '—') }}">
                     <td class="col-or-no">{{ $r->receipt_number }}</td>
                     <td class="col-payor">{{ $r->payer_name }}</td>
+                    <td class="col-particulars">{{ $r->description ?? '—' }}</td>
                     <td class="col-amount" style="text-align: right;">P {{ number_format($r->amount, 2, '.', ',') }}</td>
                     <td class="col-date">{{ $r->receipt_date->format('m/d/Y') }}</td>
-                    <td class="col-particulars">{{ $r->description ?? '—' }}</td>
                 </tr>
                 @empty
                 <tr>
@@ -328,13 +333,13 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <table class="table table-borderless mb-0">
+                    <table class="table table-borderless mb-0" style="font-size: 18px;">
                         <tr><td class="text-muted fw-bold" style="width: 40%;">OR No</td><td id="detail-or"></td></tr>
                         <tr><td class="text-muted fw-bold">Payor</td><td id="detail-payor"></td></tr>
-                        <tr><td class="text-muted fw-bold">Amount</td><td id="detail-amount"></td></tr>
-                        <tr><td class="text-muted fw-bold">Date</td><td id="detail-date"></td></tr>
                         <tr><td class="text-muted fw-bold">Particulars</td><td id="detail-particulars"></td></tr>
                         <tr><td class="text-muted fw-bold">Payment method</td><td id="detail-payment"></td></tr>
+                        <tr><td class="text-muted fw-bold">Amount</td><td id="detail-amount"></td></tr>
+                        <tr><td class="text-muted fw-bold">Date</td><td id="detail-date"></td></tr>
                         <tr><td class="text-muted fw-bold">Office</td><td id="detail-office"></td></tr>
                         <tr><td class="text-muted fw-bold">Issued by</td><td id="detail-issued-by"></td></tr>
                     </table>

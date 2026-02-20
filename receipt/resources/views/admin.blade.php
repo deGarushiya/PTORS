@@ -97,6 +97,11 @@
             color: #fff;
         }
 
+        .active
+        {
+            background-color: #D8E1ED !important;
+        }
+
         .nav-item .logout{
             float: right !important;
         }
