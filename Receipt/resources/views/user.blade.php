@@ -340,13 +340,13 @@
             </div>
             <div id="receiptNatureRows">
             <div class="row row-cols-3">
-                <div class="col" style="text-align: left;"></div>
-                <div class="col" style="text-align: left;"></div>
-                <div class="col" style="text-align: right; padding: 10px;">P <input type="number" step="0.01" min="0" name="amount" id="receiptAmountInput" value="{{ old('amount') }}" style="width: 90%; text-align: right;" required></div>
+                <div class="col" style="text-align: left; padding: 10px;"></div>
+                <div class="col" style="text-align: left; padding: 10px;"></div>
+                <div class="col" style="text-align: left; padding: 10px;"></div>
             </div>
             </div>
             <div class="row row-cols-3">
-                <div class="col" style="text-align: center;"><b>TOTAL</b></div>
+                <div class="col" style="text-align: right; padding: 10px;"><b>TOTAL</b></div>
                 <div class="col" style="text-align: center;"></div>
                 <div class="col" style="text-align: right; padding: 10px;"><b>P <span id="totalAmountDisplay">{{ old('amount') ? number_format((float)old('amount'), 2, '.', ',') : '0.00' }}</span></b></div>
             </div>
@@ -486,16 +486,6 @@ document.getElementById("particulars").addEventListener("change", function() {
 
     switch(value) {
 
-        case "Liquidation of Cash Advance":
-            modalTitle.innerText = "Liquidation of Cash Advance";
-            content = `
-                <div class="row">
-                    <div class="col-6">Amount</div>
-                    <div class="col-6"><input type="text" class="form-control" id="liquidationAmountInput" placeholder="0.00"></div>
-                </div>
-            `;
-        break;
-
         case "Settlement of Cash Advance":
             modalTitle.innerText = "Settlement of Cash Advance";
             content = `
@@ -531,6 +521,57 @@ document.getElementById("particulars").addEventListener("change", function() {
                 <div class="row row-cols-3">
                     <div class="col"></div>
                     <div class="col" style="padding: 10px; text-align: center;"><strong><span id="totalRcdDisplay">0.00</span></strong></div>
+                    <div class="col"></div>
+                </div>
+                <div class="row row-cols-3">
+                    <div class="col" style="padding: 10px; text-align: right;">Cash Refund</div>
+                    <div class="col" id="cashRefundCell" style="padding: 10px; text-align: center;"><strong><span id="cashRefundDisplay">0.00</span></strong></div>
+                    <div class="col"></div>
+                </div>
+                <div class="row row-cols-3">
+                    <div class="col" style="padding: 10px;"><b>TOTAL</b></div>
+                    <div class="col"></div>
+                    <div class="col" style="text-align: left; padding: 10px;">P <input type="text" id="settlementTotalInput" placeholder="total" readonly style="width: 90%; text-align: right;"></div>
+                </div>
+            </div>
+            `;
+        break;
+
+        case "Liquidation of Cash Advance":
+            modalTitle.innerText = "Liquidation of Cash Advance";
+            content = `
+                <div class="row row-cols-3" style="text-align: center; font-weight: bold;">
+                    <div class="col">Nature of Collection</div>
+                    <div class="col"></div>
+                    <div class="col">Amount</div>
+                </div>
+                <div class="row row-cols-3">
+                    <div class="col" style="padding: 10px;">Liquidation of cash advance</div>
+                    <div class="col"></div>
+                    <div class="col" style="text-align: left; padding: 10px;">P <input type="text" id="liquidationAmountInput" placeholder="0.00" style="width: 90%; text-align: right;"></div>
+                </div>
+                <div class="row row-cols-3">
+                    <div class="col" style="padding: 10px;">
+                        <label>Descriptions</label>
+                        <input type="number" id="desCount" min="0" value="0"
+                            style="width:15%; text-align:center;">
+                        <button type="button" id="addDesBtn">Add</button>
+                        <button type="button" id="removeDesBtn">Remove</button>
+                    </div>
+                    <div class="col"></div>
+                    <div class="col"></div>
+                </div>
+
+                <div id="desContainer"></div>
+
+                <div class="row row-cols-3">
+                    <div class="col" style="padding: 10px; text-align: right;">Cash Advance</div>
+                    <div class="col" style="padding: 10px;"><input type="text" id="cashAdvanceInput" placeholder="0.00" style="width: 100%; text-align: center;"></div>
+                    <div class="col"></div>
+                </div>
+                <div class="row row-cols-3">
+                    <div class="col" style="padding: 10px; text-align: right;">Total amount spend</div>
+                    <div class="col" style="padding: 10px;"><input type="text" id="totalSpendInput" placeholder="0.00" style="width: 100%; text-align: center;"></div>
                     <div class="col"></div>
                 </div>
                 <div class="row row-cols-3">
@@ -727,6 +768,139 @@ document.getElementById("particulars").addEventListener("change", function() {
             if (current > 0) {
                 rcdCountInput.value = current - 1;
                 generateRCDInputs(current - 1);
+            }
+        });
+    }
+
+    if (value === "Liquidation of Cash Advance") {
+
+        const desCountInput = document.getElementById("desCount");
+        const desContainer = document.getElementById("desContainer");
+        const addBtn = document.getElementById("addDesBtn");
+        const removeBtn = document.getElementById("removeDesBtn");
+
+        function generateDESInputs(count) {
+            desContainer.innerHTML = "";
+
+            for (let i = 1; i <= count; i++) {
+                desContainer.innerHTML += `
+                    <div class="row row-cols-3" style="margin-bottom:5px;">
+                        <div class="col" style="padding: 10px;">
+                            <input type="text"
+                                class="des-amount"
+                                name="des[]"
+                                placeholder="Description ${i}"
+                                style="width: 100%; text-align: center;">
+                        </div>
+                        <div class="col"></div>
+                        <div class="col"></div>
+                    </div>
+                    
+                `;
+            }
+            updateTotalDesDisplay();
+        }
+
+        function formatNumber(num) {
+            const n = Number(num);
+            if (isNaN(n)) return '0.00';
+            const parts = n.toFixed(2).split('.');
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            return parts.join('.');
+        }
+
+        function updateTotalDesDisplay() {
+            const totalEl = document.getElementById("totalDesDisplay");
+            if (!totalEl) return;
+            const inputs = desContainer.querySelectorAll("input.des-amount");
+            let sum = 0;
+            inputs.forEach(function(inp) {
+                const v = parseFloat(inp.value);
+                if (!isNaN(v)) sum += v;
+            });
+            totalEl.textContent = formatNumber(sum);
+            updateCashRefundDisplay();
+        }
+
+        function updateCashRefundDisplay() {
+            const cashRefundEl = document.getElementById("cashRefundDisplay");
+            const cashAdvanceInput = document.getElementById("cashAdvanceInput");
+            if (!cashRefundEl || !cashAdvanceInput) return;
+            const cashAdvance = parseFloat(cashAdvanceInput.value.replace(/,/g, '')) || 0;
+            const inputs = desContainer.querySelectorAll("input.des-amount");
+            let totalDes = 0;
+            inputs.forEach(function(inp) {
+                const v = parseFloat(inp.value);
+                if (!isNaN(v)) totalDes += v;
+            });
+            const cashRefund = cashAdvance - totalDes;
+            cashRefundEl.textContent = formatNumber(cashRefund);
+            checkLiquidationMatch();
+        }
+
+        function checkLiquidationMatch() {
+            const cashRefundEl = document.getElementById("cashRefundDisplay");
+            const cashRefundCell = document.getElementById("cashRefundCell");
+            const liquidationAmountInput = document.getElementById("liquidationAmountInput");
+            const liquidationTotalInput = document.getElementById("liquidationTotalInput");
+            if (!cashRefundEl || !cashRefundCell || !liquidationAmountInput || !liquidationTotalInput) return;
+            const cashRefundNum = parseFloat(cashRefundEl.textContent.replace(/,/g, '')) || 0;
+            const liquidationNum = parseFloat(liquidationAmountInput.value.replace(/,/g, ''));
+            const hasLiquidation = !isNaN(liquidationNum);
+            const matched = hasLiquidation && Math.abs(cashRefundNum - liquidationNum) < 0.005;
+            if (!hasLiquidation && cashRefundNum === 0) {
+                cashRefundCell.style.border = '';
+                liquidatiohnTotalInput.value = '';
+                liquidatiohnTotalInput.style.color = '';
+                liquidatiohnTotalInput.style.fontWeight = '';
+            } else if (matched) {
+                cashRefundCell.style.border = '2px solid #52b788';
+                cashRefundCell.style.borderRadius = '4px';
+                liquidatiohnTotalInput.value = formatNumber(cashRefundNum);
+                liquidatiohnTotalInput.style.color = '';
+                liquidatiohnTotalInput.style.fontWeight = 'normal';
+            } else {
+                cashRefundCell.style.border = '2px solid #dc3545';
+                cashRefundCell.style.borderRadius = '4px';
+                liquidatiohnTotalInput.value = 'Incorrect value';
+                liquidatiohnTotalInput.style.color = '#dc3545';
+                liquidatiohnTotalInput.style.fontWeight = 'bold';
+            }
+        }
+
+        desContainer.addEventListener("input", function(e) {
+            if (e.target.classList.contains("des-amount")) updateTotalDesDisplay();
+        });
+
+        const cashAdvanceInputEl = document.getElementById("cashAdvanceInput");
+        cashAdvanceInputEl.addEventListener("input", updateCashRefundDisplay);
+        cashAdvanceInputEl.addEventListener("blur", function() {
+            const n = parseFloat(this.value.replace(/,/g, ''));
+            if (!isNaN(n) && n >= 0) this.value = formatNumber(n);
+        });
+
+        document.getElementById("liquidationAmountInput").addEventListener("input", checkLiquidationMatch);
+        document.getElementById("liquidationAmountInput").addEventListener("blur", function() {
+            const n = parseFloat(this.value.replace(/,/g, ''));
+            if (!isNaN(n) && n >= 0) this.value = formatNumber(n);
+            checkLiquidationMatch();
+        });
+
+        desCountInput.addEventListener("input", function () {
+            generateDESInputs(parseInt(this.value) || 0);
+        });
+
+        addBtn.addEventListener("click", function () {
+            let current = parseInt(desCountInput.value) || 0;
+            desCountInput.value = current + 1;
+            generateDESInputs(current + 1);
+        });
+
+        removeBtn.addEventListener("click", function () {
+            let current = parseInt(desCountInput.value) || 0;
+            if (current > 0) {
+                desCountInput.value = current - 1;
+                generateDESInputs(current - 1);
             }
         });
     }
