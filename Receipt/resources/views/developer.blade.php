@@ -76,6 +76,7 @@
                                 <option value="">Simple (amount only)</option>
                                 <option value="settlement" {{ old('modal_type') == 'settlement' ? 'selected' : '' }}>Settlement of Cash Advance</option>
                                 <option value="liquidation" {{ old('modal_type') == 'liquidation' ? 'selected' : '' }}>Liquidation of Cash Advance</option>
+                                \<option value="liquidation" {{ old('modal_type') == 'trust' ? 'selected' : '' }}>Trust Fund</option>
                             </select>
                         </div>
                         <div class="col-md-2">

@@ -582,7 +582,7 @@ document.getElementById("particulars").addEventListener("change", function() {
                 <div class="row row-cols-3">
                     <div class="col" style="padding: 10px;"><b>TOTAL</b></div>
                     <div class="col"></div>
-                    <div class="col" style="text-align: left; padding: 10px;">P <input type="text" id="settlementTotalInput" placeholder="total" readonly style="width: 90%; text-align: right;"></div>
+                    <div class="col" style="text-align: left; padding: 10px;">P <input type="text" id="liquidationTotalInput" placeholder="total" readonly style="width: 90%; text-align: right;"></div>
                 </div>
             </div>
             `;
@@ -624,6 +624,41 @@ document.getElementById("particulars").addEventListener("change", function() {
                 <div class="row">
                     <div class="col-6">Amount</div>
                     <div class="col-6"><input type="text" class="form-control" id="simpleAmountInput" placeholder="0.00"></div>
+                </div>
+            `;
+        break;
+
+        case "Trust Fund":
+            modalTitle.innerText = "Trust Fund";
+            content = `
+                <div class="row row-cols-3" style="text-align: center; font-weight: bold;">
+                    <div class="col">Nature of Collection</div>
+                    <div class="col">Account Code</div>
+                    <div class="col">Amount</div>
+                </div>
+                <div class="row row-cols-3">
+                    <div class="col" style="padding: 10px;">To withdraw the amount from Drugs and Medication account, </div>
+                    <div class="col" style="padding: 10px;"></div>
+                    <div class="col" style="text-align: center; padding: 10px;"><input type="text" id="trustAmountInput" placeholder="Amount" style="width: 90%; text-align: right;"></div>
+                </div>
+                <div class="row row-cols-3">
+                    <div class="col" style="padding: 10px;">
+                        <label>Nature of Collection & Account Code</label>
+                        <input type="number" id="desCount" min="0" value="0"
+                            style="width:15%; text-align:center;">
+                        <button type="button" id="addDesBtn">Add</button>
+                        <button type="button" id="removeDesBtn">Remove</button>
+                    </div>
+                    <div class="col"></div>
+                    <div class="col"></div>
+                </div>
+
+                <div id="desContainer"></div>
+
+                <div class="row row-cols-3">
+                    <div class="col" style="padding: 10px;"><b>TOTAL</b></div>
+                    <div class="col"></div>
+                    <div class="col" style="text-align: left; padding: 10px;">P <input type="text" id="trustTotalInput" placeholder="total" readonly style="width: 90%; text-align: right;"></div>
                 </div>
             `;
         break;
@@ -905,6 +940,145 @@ document.getElementById("particulars").addEventListener("change", function() {
         });
     }
 
+    if (value === "Trust Fund") {
+
+        const desCountInput = document.getElementById("desCount");
+        const desContainer = document.getElementById("desContainer");
+        const addBtn = document.getElementById("addDesBtn");
+        const removeBtn = document.getElementById("removeDesBtn");
+
+        function generateDESInputs(count) {
+            desContainer.innerHTML = "";
+
+            for (let i = 1; i <= count; i++) {
+                desContainer.innerHTML += `
+                    <div class="row row-cols-3" style="margin-bottom:5px;">
+                        <div class="col" style="padding: 10px;">
+                            <input type="text"
+                                class="des-amount"
+                                name="des[]"
+                                placeholder="Nature of Collection ${i}"
+                                style="width: 100%; text-align: center;">
+                        </div>
+                        <div class="col" style="padding: 10px;">
+                            <input type="text"
+                                class="des-amount"
+                                name="des[]"
+                                placeholder="Account Code ${i}"
+                                style="width: 100%; text-align: center;">
+                        </div>
+                        <div class="col"></div>
+                    </div>
+                    
+                `;
+            }
+            updateTotalDesDisplay();
+        }
+
+        function formatNumber(num) {
+            const n = Number(num);
+            if (isNaN(n)) return '0.00';
+            const parts = n.toFixed(2).split('.');
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            return parts.join('.');
+        }
+
+        function updateTotalDesDisplay() {
+            const totalEl = document.getElementById("totalDesDisplay");
+            if (!totalEl) return;
+            const inputs = desContainer.querySelectorAll("input.des-amount");
+            let sum = 0;
+            inputs.forEach(function(inp) {
+                const v = parseFloat(inp.value);
+                if (!isNaN(v)) sum += v;
+            });
+            totalEl.textContent = formatNumber(sum);
+            updateCashRefundDisplay();
+        }
+
+        function updateCashRefundDisplay() {
+            const cashRefundEl = document.getElementById("cashRefundDisplay");
+            const cashAdvanceInput = document.getElementById("cashAdvanceInput");
+            if (!cashRefundEl || !cashAdvanceInput) return;
+            const cashAdvance = parseFloat(cashAdvanceInput.value.replace(/,/g, '')) || 0;
+            const inputs = desContainer.querySelectorAll("input.des-amount");
+            let totalDes = 0;
+            inputs.forEach(function(inp) {
+                const v = parseFloat(inp.value);
+                if (!isNaN(v)) totalDes += v;
+            });
+            const cashRefund = cashAdvance - totalDes;
+            cashRefundEl.textContent = formatNumber(cashRefund);
+            checktrustMatch();
+        }
+
+        function checktrustMatch() {
+            const cashRefundEl = document.getElementById("cashRefundDisplay");
+            const cashRefundCell = document.getElementById("cashRefundCell");
+            const trustAmountInput = document.getElementById("trustAmountInput");
+            const trustTotalInput = document.getElementById("trustTotalInput");
+            if (!cashRefundEl || !cashRefundCell || !trustAmountInput || !trustTotalInput) return;
+            const cashRefundNum = parseFloat(cashRefundEl.textContent.replace(/,/g, '')) || 0;
+            const trustNum = parseFloat(trustAmountInput.value.replace(/,/g, ''));
+            const hasTrust = !isNaN(trustNum);
+            const matched = hasTrust && Math.abs(cashRefundNum - trustNum) < 0.005;
+            if (!hasTrust && cashRefundNum === 0) {
+                cashRefundCell.style.border = '';
+                trustTotalInput.value = '';
+                trustTotalInput.style.color = '';
+                trustTotalInput.style.fontWeight = '';
+            } else if (matched) {
+                cashRefundCell.style.border = '2px solid #52b788';
+                cashRefundCell.style.borderRadius = '4px';
+                trustTotalInput.value = formatNumber(cashRefundNum);
+                trustTotalInput.style.color = '';
+                trustTotalInput.style.fontWeight = 'normal';
+            } else {
+                cashRefundCell.style.border = '2px solid #dc3545';
+                cashRefundCell.style.borderRadius = '4px';
+                trustTotalInput.value = 'Incorrect value';
+                trustTotalInput.style.color = '#dc3545';
+                trustTotalInput.style.fontWeight = 'bold';
+            }
+        }
+
+        desContainer.addEventListener("input", function(e) {
+            if (e.target.classList.contains("des-amount")) updateTotalDesDisplay();
+        });
+
+        const cashAdvanceInputEl = document.getElementById("cashAdvanceInput");
+        cashAdvanceInputEl.addEventListener("input", updateCashRefundDisplay);
+        cashAdvanceInputEl.addEventListener("blur", function() {
+            const n = parseFloat(this.value.replace(/,/g, ''));
+            if (!isNaN(n) && n >= 0) this.value = formatNumber(n);
+        });
+
+        document.getElementById("trustAmountInput").addEventListener("input", checkTrustMatch);
+        document.getElementById("trustAmountInput").addEventListener("blur", function() {
+            const n = parseFloat(this.value.replace(/,/g, ''));
+            if (!isNaN(n) && n >= 0) this.value = formatNumber(n);
+            checkTrustMatch();
+        });
+
+        desCountInput.addEventListener("input", function () {
+            generateDESInputs(parseInt(this.value) || 0);
+        });
+
+        addBtn.addEventListener("click", function () {
+            let current = parseInt(desCountInput.value) || 0;
+            desCountInput.value = current + 1;
+            generateDESInputs(current + 1);
+        });
+
+        removeBtn.addEventListener("click", function () {
+            let current = parseInt(desCountInput.value) || 0;
+            if (current > 0) {
+                desCountInput.value = current - 1;
+                generateDESInputs(current - 1);
+            }
+        });
+    }
+
         let modal = new bootstrap.Modal(
             document.getElementById('particularsModal')
         );
@@ -922,6 +1096,8 @@ document.getElementById('particularsModalEnterBtn').addEventListener('click', fu
         populateSettlementToReceipt();
     } else if (particulars === 'Liquidation of Cash Advance') {
         populateLiquidationToReceipt();
+    } else if (particulars === 'Trust Fund') {
+        populateTrustToReceipt();
     } else {
         populateSimpleToReceipt();
     }
