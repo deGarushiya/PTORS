@@ -405,8 +405,18 @@
         <div class="container text-center d-flex justify-content-between align-items-center flex-wrap gap-2" style="background-color: #ffffff00 !important;">
             <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelledOrModal" style="min-width: 140px;">Record cancelled OR</button>
             <div>
-                <button type="submit" class="btn btn-success me-2" style="min-width: 140px;">Save receipt</button>
-                <button type="button" class="btn btn-primary" style="min-width: 140px;" onclick="window.print();">Print</button>
+                <input type="hidden" name="action" id="formAction" value="save">
+                <button type="submit" class="btn btn-success me-2" 
+                    style="min-width:140px;"
+                    onclick="setAction('save')">
+                    Save receipt
+                </button>
+
+                <button type="submit" class="btn btn-primary"
+                    style="min-width:140px;"
+                    onclick="setAction('print')">
+                    Print
+                </button>
             </div>
         </div>
     </form>
@@ -471,6 +481,12 @@
     </div>
   </div>
 </div>
+
+<script>
+function setAction(action){
+    document.getElementById('formAction').value = action;
+}
+</script>
 
 <!-- Script for different particulars-->
 <script>

@@ -6,6 +6,9 @@ use App\Models\Office;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use App\Http\Controllers\PrintController;
+
+Route::get('/receipts/{id}/print', [PrintController::class, 'print'])->name('receipts.print');
 
 Route::get('/', function () {
     return view('login');

@@ -39,7 +39,7 @@ class ReceiptController extends Controller
 
         $receiptNumber = trim($validated['receipt_number']);
 
-        Receipt::create([
+        $receipt = Receipt::create([
             'receipt_number' => $receiptNumber,
             'office_id' => $validated['office_id'],
             'issued_by' => Auth::id(),
@@ -54,9 +54,13 @@ class ReceiptController extends Controller
             'receipt_date' => $validated['receipt_date'],
         ]);
 
-        return redirect()->route('user')
-            ->with('success', 'Receipt saved successfully.')
-            ->with('success_receipt_saved', true);
+        if ($request->action === 'print') {
+        return redirect()->route('receipts.print', $receipt->id);
+    }
+
+    return redirect()->route('user')
+        ->with('success', 'Receipt saved successfully.')
+        ->with('success_receipt_saved', true);
     }
 
     /**
