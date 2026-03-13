@@ -19,6 +19,7 @@ class OfficeSeeder extends Seeder
                 'address' => null,
                 'contact' => null,
                 'is_active' => true,
+                'fund_code' => '100',
             ]
         );
     }

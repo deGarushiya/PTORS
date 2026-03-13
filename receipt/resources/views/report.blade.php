@@ -7,12 +7,11 @@
     <link rel="icon" href="{{ asset('images/icon.png') }}" type="image/png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
             margin: 0;
-            padding-top: 80px;  
-            padding-bottom: 60px; 
+            padding-top: 70px;
+            padding-bottom: 56px;
             overflow-y: auto;
             font-family: "Lucida Console", "Courier New", monospace;
             background-image: linear-gradient(180deg, rgba(232,238,247,0.85) 0%, rgba(214,223,234,0.85) 50%, rgba(226,232,242,0.85) 100%), url("{{ asset('images/PangasinanBanner_Capitol2.png') }}");
@@ -60,20 +59,27 @@
         nav {
             list-style-type: none;
             margin: 0;
-            padding: 15px 0 0 0;
+            padding: 0 16px;
             overflow: hidden;
             background-color: #0d0875;
             position: fixed;
             top: 0;
+            left: 0;
+            right: 0;
             width: 100%;
+            display: flex;
+            align-items: center;
+            min-height: 56px;
+            box-sizing: border-box;
         }
 
-        .nav img{
-            font-size: 16px;
-            color: #fff;
-            font-weight: bolder;
-            font-family: "Times New Roman", Times, serif;
-            margin: 0 50px 0 50px;
+        nav .nav-brand {
+            flex-shrink: 0;
+            margin-right: 1.25rem;
+        }
+
+        nav .nav-brand img {
+            display: block;
             border: solid 1px #fff;
             width: 40px;
             height: 40px;
@@ -81,53 +87,77 @@
             object-fit: cover;
         }
 
-        .nav a,
-        .nav .nav-logout-btn {
+        nav .nav-tabs {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            border: none;
+            padding: 0;
+            margin: 0;
+            gap: 0;
+        }
+
+        nav .nav-item {
+            display: flex;
+            align-items: center;
+        }
+
+        nav .nav a,
+        nav .nav .nav-logout-btn {
             color: #fff;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
             font-family: "Times New Roman", Times, serif;
+        }
+
+        nav .nav-link {
+            padding: 10px 14px;
+            display: inline-block;
+        }
+
+        nav .nav-link:hover {
+            color: #fff;
+        }
+
+        nav .nav-link.active {
+            background-color: rgba(255,255,255,0.2);
+            border-radius: 4px;
         }
 
         .nav-logout-btn {
             background: none;
             border: none;
             cursor: pointer;
-            padding: 8px 12px;
+            padding: 10px 14px;
         }
 
-        .nav-link:hover{
-            color: #fff;
-        }
-
-        .active
-        {
-            background-color: #D8E1ED !important;
-        }
-
-        .nav-item .logout{
+        .nav-item .logout {
             float: right !important;
         }
-         
-        .search-container{
+
+        .search-container {
             width: 95%;
-            max-width: 1400px;
-            padding-top: 10px;
-            padding-bottom: 10px;
-            margin: auto;
+            max-width: 1200px;
+            padding: 16px 0;
+            margin: 0 auto;
         }
 
         .filters-row {
             display: flex;
             flex-wrap: wrap;
             align-items: center;
-            gap: 12px;
+            gap: 10px 16px;
             margin-bottom: 12px;
         }
 
         .filters-row label {
             font-weight: 600;
             margin-bottom: 0;
+            white-space: nowrap;
+        }
+
+        .filters-row .btn {
             white-space: nowrap;
         }
 
@@ -144,29 +174,30 @@
             padding: 5px 8px;
         }
 
-        .report-container{
+        .report-container {
             width: 95%;
-            max-width: 1400px;
-            max-height: calc(100vh - 260px);
-            margin: auto;
-            border: 3px solid #ddd;
-            background-color: #ddd;
-            border-radius: 5px;
+            max-width: 1200px;
+            max-height: calc(100vh - 240px);
+            margin: 0 auto 20px;
+            border: 2px solid #ccc;
+            background-color: #fff;
+            border-radius: 6px;
             overflow: auto;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
         }
 
         .report-table {
             border-collapse: collapse;
             width: 100%;
-            min-width: 700px;
-            font-size: 18px;
-            margin-top: 5px !important;
+            min-width: 520px;
+            font-size: 15px;
+            margin-top: 0 !important;
             table-layout: fixed;
         }
 
         .report-table th,
         .report-table td {
-            padding: 10px;
+            padding: 8px 10px;
             overflow: hidden;
             text-overflow: ellipsis;
             border: 1px solid #999;
@@ -185,51 +216,110 @@
             background-color: #e0e0e0;
         }
 
-        .report-table .col-or-no { width: 120px; min-width: 120px; }
-        .report-table .col-payor { width: 25%; min-width: 150px; }
-        .report-table .col-amount { width: 130px; min-width: 130px; }
-        .report-table .col-date { width: 110px; min-width: 110px; }
-        .report-table .col-particulars { width: auto; min-width: 180px; }
+        .report-table .col-or-no { width: 11%; min-width: 90px; }
+        .report-table .col-payor { width: 20%; min-width: 100px; }
+        .report-table .col-particulars { width: 39%; min-width: 120px; }
+        .report-table .col-amount { width: 15%; min-width: 100px; }
+        .report-table .col-date { width: 15%; min-width: 95px; }
 
-        .pagination-container{
+        .pagination-container {
             width: 95%;
-            max-width: 1400px;
-            padding-top: 10px;
-            padding-bottom: 10px;
-            margin: auto;
+            max-width: 1200px;
+            padding: 12px 0 20px;
+            margin: 0 auto;
         }
 
-        .page-link{
+        /* Hide duplicate "Showing X to Y of Z" from Bootstrap-5 template (we show it above) */
+        .pagination-container .report-pagination-links nav p.small,
+        .pagination-container .report-pagination-links nav .text-muted {
+            display: none !important;
+        }
+        .pagination-container .report-pagination-links nav .d-none.d-sm-flex {
+            display: flex !important;
+        }
+        .pagination-container .report-pagination-links nav .justify-content-sm-between {
+            justify-content: flex-end !important;
+        }
+        .pagination-container .report-pagination-links nav,
+        .pagination-container nav[aria-label="Pagination Navigation"],
+        .pagination-container .pagination {
+            display: flex !important;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            margin: 0 !important;
+            padding: 0 !important;
+            list-style: none;
+        }
+
+        .pagination-container .page-item {
+            display: inline-block;
+        }
+
+        .pagination-container .page-link {
+            display: inline-block;
+            padding: 6px 12px;
+            font-size: 14px;
+            line-height: 1.4;
             border: 1px solid #a0a0a0 !important;
-            border-bottom: 3px solid #a0a0a0 !important;
-            color: #7d7d7d !important;
+            border-radius: 4px;
+            color: #333 !important;
+            background: #fff;
+            text-decoration: none;
+        }
+
+        .pagination-container .page-link:hover {
+            background: #e9ecef;
+        }
+
+        .pagination-container .page-item.active .page-link {
+            background: #0d0875;
+            color: #fff !important;
+            border-color: #0d0875 !important;
+        }
+
+        .pagination-container .page-item.disabled .page-link {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .pagination-container .pagination svg,
+        .pagination-container .page-link svg {
+            width: 1em;
+            height: 1em;
+            vertical-align: middle;
         }
 
         footer {
-            list-style-type: none;
             margin: 0;
-            padding: 0;
-            overflow: hidden;
-            background-color: #fff;
+            padding: 14px 16px;
             background-color: #0d0875;
             position: fixed;
             bottom: 0;
+            left: 0;
+            right: 0;
             width: 100%;
             text-align: center;
-            font-size: 15px;
-            font-weight: bolder;
+            font-size: 14px;
+            font-weight: bold;
             font-family: "Lucida Console", "Courier New", monospace;
             color: #fff;
+            box-sizing: border-box;
+        }
+
+        footer p {
+            margin: 0;
         }
     </style>
 </head>
 <body>
     <div class="app-content-layer">
     <nav>
+        <div class="nav-brand">
+            <img src="{{ asset('images/icon.png') }}" alt="Logo">
+        </div>
         <ul class="nav nav-tabs">
-            <div class>
-                <img src="{{ asset('images/icon.png') }}" alt="Logo">
-            </div>
             <li class="nav-item">
                 <a class="nav-link" href="{{ route('user') }}">New receipt</a>
             </li>
@@ -241,7 +331,7 @@
                 <a class="nav-link" href="{{ route('admin') }}">Admin</a>
             </li>
             @endif
-            <li class="nav-item ms-auto" style="margin-right: 10px">
+            <li class="nav-item ms-auto">
                 <form method="POST" action="{{ route('logout') }}" style="display: inline;">
                     @csrf
                     <button type="submit" class="nav-link nav-logout-btn">Log out</button>
@@ -251,16 +341,13 @@
     </nav>
 
     <form method="GET" action="{{ route('report') }}" class="search-container">
-        @if(request('per_page'))
-            <input type="hidden" name="per_page" value="{{ request('per_page') }}">
-        @endif
         <div class="filters-row">
+            <a href="{{ route('report', array_filter(array_merge(request()->only('search', 'payment_method'), ['date' => $prevDay]))) }}" class="btn btn-outline-secondary btn-sm" title="Previous day">&laquo; Prev day</a>
+            <label for="filter-date">Date</label>
+            <input type="date" id="filter-date" name="date" class="filter-input" value="{{ $date ?? '' }}">
+            <a href="{{ route('report', array_filter(array_merge(request()->only('search', 'payment_method'), ['date' => $nextDay]))) }}" class="btn btn-outline-secondary btn-sm" title="Next day">Next day &raquo;</a>
             <label for="filter-search">Search</label>
             <input type="text" id="filter-search" name="search" class="search" placeholder="OR No, Payor, Particulars..." value="{{ old('search', $search ?? '') }}">
-            <label for="filter-date-from">Date from</label>
-            <input type="date" id="filter-date-from" name="date_from" class="filter-input" value="{{ $dateFrom ?? '' }}">
-            <label for="filter-date-to">Date to</label>
-            <input type="date" id="filter-date-to" name="date_to" class="filter-input" value="{{ $dateTo ?? '' }}">
             <label for="filter-payment">Payment</label>
             <select id="filter-payment" name="payment_method" class="filter-input" style="min-width: 120px;">
                 <option value="">All</option>
@@ -269,10 +356,11 @@
                 <option value="Money Order" {{ ($paymentMethod ?? '') == 'Money Order' ? 'selected' : '' }}>Money Order</option>
             </select>
             <button type="submit" class="btn btn-success">Apply</button>
-            @if(!empty($search ?? '') || !empty($dateFrom ?? '') || !empty($dateTo ?? '') || !empty($paymentMethod ?? ''))
-                <a href="{{ route('report', array_filter(request()->only('per_page'))) }}" class="btn btn-outline-secondary">Clear filters</a>
+            @if(!empty($search ?? '') || !empty($paymentMethod ?? ''))
+                <a href="{{ route('report', ['date' => $date ?? '']) }}" class="btn btn-outline-secondary">Clear filters</a>
             @endif
         </div>
+        <div class="text-muted small mb-2">Receipts for {{ $dateDisplay ?? $date ?? '—' }} ({{ $receipts->count() }})</div>
     </form>
     <div class="report-container">
         <table class="table table-hover report-table">
@@ -282,7 +370,7 @@
                     <th scope="col" class="col-payor">Payor</th>
                     <th scope="col" class="col-particulars">Particulars</th>
                     <th scope="col" class="col-amount" style="text-align: right;">Amount</th>
-                    <th scope="col" class="col-date" style="width: 150px;">Date</th>
+                    <th scope="col" class="col-date">Date</th>
                 </tr>
             </thead>
             <tbody>
@@ -306,23 +394,15 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="5" class="text-center py-4">No receipts yet. <a href="{{ route('user') }}">Create one</a>.</td>
+                    <td colspan="5" class="text-center py-4">No receipts for this day. <a href="{{ route('user') }}">Create one</a> or choose another date.</td>
                 </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
-    @if($receipts->hasPages())
-    <div class="pagination-container">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div>Showing {{ $receipts->firstItem() }}–{{ $receipts->lastItem() }} of {{ $receipts->total() }}</div>
-            <div>{{ $receipts->links() }}</div>
-        </div>
-    </div>
-    @endif
 
     <footer>
-        <p class="mb-0 pt-2">Designed and Developed by Marzel Yna Carlet &amp; Gerard Garcia</p>
+        <p>Designed and Developed by Marzel Yna Carlet &amp; Gerard Garcia</p>
     </footer>
     </div>
 

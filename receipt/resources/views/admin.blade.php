@@ -11,8 +11,8 @@
     <style>
         body {
             margin: 0;
-            padding-top: 80px;  
-            padding-bottom: 60px; 
+            padding-top: 70px;
+            padding-bottom: 56px;
             overflow-y: auto;
             font-family: "Lucida Console", "Courier New", monospace;
             background-image: linear-gradient(180deg, rgba(232,238,247,0.85) 0%, rgba(214,223,234,0.85) 50%, rgba(226,232,242,0.85) 100%), url("{{ asset('images/PangasinanBanner_Capitol2.png') }}");
@@ -57,20 +57,27 @@
         nav {
             list-style-type: none;
             margin: 0;
-            padding: 15px 0 0 0;
+            padding: 0 16px;
             overflow: hidden;
             background-color: #0d0875;
             position: fixed;
             top: 0;
+            left: 0;
+            right: 0;
             width: 100%;
+            display: flex;
+            align-items: center;
+            min-height: 56px;
+            box-sizing: border-box;
         }
 
-        .nav img{
-            font-size: 16px;
-            color: #fff;
-            font-weight: bolder;
-            font-family: "Times New Roman", Times, serif;
-            margin: 0 50px 0 50px;
+        nav .nav-brand {
+            flex-shrink: 0;
+            margin-right: 1.25rem;
+        }
+
+        nav .nav-brand img {
+            display: block;
             border: solid 1px #fff;
             width: 40px;
             height: 40px;
@@ -78,31 +85,52 @@
             object-fit: cover;
         }
 
-        .nav a,
-        .nav .nav-logout-btn {
+        nav .nav-tabs {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            border: none;
+            padding: 0;
+            margin: 0;
+            gap: 0;
+        }
+
+        nav .nav-item {
+            display: flex;
+            align-items: center;
+        }
+
+        nav .nav a,
+        nav .nav .nav-logout-btn {
             color: #fff;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
             font-family: "Times New Roman", Times, serif;
+        }
+
+        nav .nav-link {
+            padding: 10px 14px;
+            display: inline-block;
+        }
+
+        nav .nav-link:hover {
+            color: #fff;
+        }
+
+        nav .nav-link.active {
+            background-color: rgba(255,255,255,0.2);
+            border-radius: 4px;
         }
 
         .nav-logout-btn {
             background: none;
             border: none;
             cursor: pointer;
-            padding: 8px 12px;
+            padding: 10px 14px;
         }
 
-        .nav-link:hover{
-            color: #fff;
-        }
-
-        .active
-        {
-            background-color: #D8E1ED !important;
-        }
-
-        .nav-item .logout{
+        .nav-item .logout {
             float: right !important;
         }
 
@@ -259,30 +287,34 @@
         }
 
         footer {
-            list-style-type: none;
             margin: 0;
-            padding: 0;
-            overflow: hidden;
-            background-color: #fff;
+            padding: 14px 16px;
             background-color: #0d0875;
             position: fixed;
             bottom: 0;
+            left: 0;
+            right: 0;
             width: 100%;
             text-align: center;
-            font-size: 15px;
-            font-weight: bolder;
+            font-size: 14px;
+            font-weight: bold;
             font-family: "Lucida Console", "Courier New", monospace;
             color: #fff;
+            box-sizing: border-box;
+        }
+
+        footer p {
+            margin: 0;
         }
     </style>
 </head>
 <body>
     <div class="app-content-layer">
     <nav>
+        <div class="nav-brand">
+            <img src="{{ asset('images/icon.png') }}" alt="Logo">
+        </div>
         <ul class="nav nav-tabs">
-            <div class>
-                <img src="{{ asset('images/icon.png') }}" alt="Logo">
-            </div>
             <li class="nav-item">
                 <a class="nav-link" href="{{ route('user') }}">New receipt</a>
             </li>
@@ -292,7 +324,7 @@
             <li class="nav-item">
                 <a class="nav-link active" href="{{ route('admin') }}">Admin</a>
             </li>
-            <li class="nav-item ms-auto" style="margin-right: 10px">
+            <li class="nav-item ms-auto">
                 <form method="POST" action="{{ route('logout') }}" style="display: inline;">
                     @csrf
                     <button type="submit" class="nav-link nav-logout-btn">Log out</button>
@@ -306,6 +338,13 @@
             <h1 class="admin-title">Admin dashboard</h1>
             <p class="admin-subtitle">Overview and quick actions</p>
         </div>
+
+        @if(session('success'))
+            <div class="alert alert-success mb-3">{{ session('success') }}</div>
+        @endif
+        @if(session('error'))
+            <div class="alert alert-danger mb-3">{{ session('error') }}</div>
+        @endif
 
         <div class="admin-stats">
             <div class="admin-card">
@@ -328,12 +367,6 @@
 
         <div class="admin-section">
             <div class="admin-section-title">Backup</div>
-            @if(session('success'))
-                <div class="alert alert-success mb-3">{{ session('success') }}</div>
-            @endif
-            @if(session('error'))
-                <div class="alert alert-danger mb-3">{{ session('error') }}</div>
-            @endif
             <div class="admin-backup-inline">
                 <form method="POST" action="{{ route('admin.backup') }}">
                     @csrf
@@ -351,7 +384,7 @@
     </a>
 
     <footer>
-        <p class="mb-0 pt-2">Designed and Developed by Marzel Yna Carlet &amp; Gerard Garcia</p>
+        <p>Designed and Developed by Marzel Yna Carlet &amp; Gerard Garcia</p>
     </footer>
     </div>
 </body>

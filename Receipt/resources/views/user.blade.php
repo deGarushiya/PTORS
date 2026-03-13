@@ -11,7 +11,7 @@
     <style>
         body {
             margin: 0;
-            padding-top: 80px;  
+            padding-top: 70px;  
             padding-bottom: 60px; 
             overflow-y: auto;
             font-family: "Lucida Console", "Courier New", monospace;
@@ -58,22 +58,29 @@
         .modal-backdrop { z-index: 1055 !important; }
 
         nav {
-        list-style-type: none;
-        margin: 0;
-        padding: 15px 0 0 0;
-        overflow: hidden;
-        background-color: #0d0875;
-        position: fixed;
-        top: 0;
-        width: 100%;
+            list-style-type: none;
+            margin: 0;
+            padding: 0 16px;
+            overflow: hidden;
+            background-color: #0d0875;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            min-height: 56px;
+            box-sizing: border-box;
         }
 
-        .nav img{
-            font-size: 16px;
-            color: #ffffff;
-            font-weight: bolder;
-            font-family: "Times New Roman", Times, serif;
-            margin: 0 50px 0 50px;
+        nav .nav-brand {
+            flex-shrink: 0;
+            margin-right: 1.25rem;
+        }
+
+        nav .nav-brand img {
+            display: block;
             border: solid 1px #fff;
             width: 40px;
             height: 40px;
@@ -81,31 +88,52 @@
             object-fit: cover;
         }
 
-        .nav a,
-        .nav .nav-logout-btn {
+        nav .nav-tabs {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            border: none;
+            padding: 0;
+            margin: 0;
+            gap: 0;
+        }
+
+        nav .nav-item {
+            display: flex;
+            align-items: center;
+        }
+
+        nav .nav a,
+        nav .nav .nav-logout-btn {
             color: #fff;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
             font-family: "Times New Roman", Times, serif;
+        }
+
+        nav .nav-link {
+            padding: 10px 14px;
+            display: inline-block;
+        }
+
+        nav .nav-link:hover {
+            color: #fff;
+        }
+
+        nav .nav-link.active {
+            background-color: rgba(255,255,255,0.2);
+            border-radius: 4px;
         }
 
         .nav-logout-btn {
             background: none;
             border: none;
             cursor: pointer;
-            padding: 8px 12px;
+            padding: 10px 14px;
         }
 
-        .nav-link:hover{
-            color: #fff;
-        }
-
-        .active
-        {
-            background-color: #D8E1ED !important;
-        }
-
-        .nav-item .logout{
+        .nav-item .logout {
             float: right !important;
         }
 
@@ -192,15 +220,37 @@
             font-family: "Lucida Console", "Courier New", monospace;
             color: #fff;
         }
+
+        @media print {
+            body * { visibility: hidden; }
+            #pdfReceiptModal, #pdfReceiptModal * { visibility: visible; }
+            #pdfReceiptModal {
+                position: fixed !important;
+                inset: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                max-width: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: none !important;
+                background: #fff !important;
+                z-index: 99999 !important;
+            }
+            #pdfReceiptModal .modal-dialog { max-width: none !important; margin: 0 !important; height: 100% !important; }
+            #pdfReceiptModal .modal-content { height: 100% !important; border: none !important; }
+            #pdfReceiptModal .modal-header, #pdfReceiptModal .modal-footer { display: none !important; }
+            #pdfReceiptModal .modal-body { height: 100% !important; padding: 0 !important; }
+            #pdfReceiptModal .modal-backdrop { display: none !important; }
+        }
     </style>
 </head>
 <body>
     <div class="app-content-layer">
     <nav>
+        <div class="nav-brand">
+            <img src="{{ asset('images/icon.png') }}" alt="Logo">
+        </div>
         <ul class="nav nav-tabs">
-            <div class>
-                <img src="{{ asset('images/icon.png') }}" alt="Logo">
-            </div>
             <li class="nav-item">
                 <a class="nav-link active" href="{{ route('user') }}">New receipt</a>
             </li>
@@ -212,7 +262,7 @@
                 <a class="nav-link" href="{{ route('admin') }}">Admin</a>
             </li>
             @endif
-            <li class="nav-item ms-auto" style="margin-right: 10px">
+            <li class="nav-item ms-auto">
                 <form method="POST" action="{{ route('logout') }}" style="display: inline;">
                     @csrf
                     <button type="submit" class="nav-link nav-logout-btn">Log out</button>
@@ -230,12 +280,13 @@
     @php
         $msgType = null;
         $msgContent = '';
-        $msgShowPrint = false;
+        $msgShowPrintReceipt = false;
+        $savedReceiptId = session('saved_receipt_id');
         if (session('error')) { $msgType = 'warning'; $msgContent = session('error'); }
         elseif (session('success')) {
             $msgType = 'success';
             $msgContent = session('success');
-            $msgShowPrint = session('success_receipt_saved', false);
+            $msgShowPrintReceipt = !empty($savedReceiptId);
         }
         elseif ($errors->any()) { $msgType = 'danger'; $msgContent = '<ul>'.implode('', array_map(fn($e)=>'<li>'.e($e).'</li>', $errors->all())).'</ul>'; }
         elseif (!isset($office)) { $msgType = 'warning'; $msgContent = 'No office configured. Run php artisan db:seed to create the default office.'; }
@@ -243,12 +294,13 @@
     @if($msgType)
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        showMsgPopup({!! json_encode($msgType) !!}, {!! json_encode($msgContent) !!}, {{ $msgShowPrint ? 'true' : 'false' }});
+        var printReceiptUrl = {!! json_encode($savedReceiptId ? route('receipts.print', ['id' => $savedReceiptId]) : null) !!};
+        showMsgPopup({!! json_encode($msgType) !!}, {!! json_encode($msgContent) !!}, printReceiptUrl);
     });
     </script>
     @endif
     <script>
-    function showMsgPopup(type, html, showPrint) {
+    function showMsgPopup(type, html, printReceiptUrl) {
         var overlay = document.getElementById('msgPopupOverlay');
         var popup = document.getElementById('msgPopup');
         var body = document.getElementById('msgPopupBody');
@@ -262,9 +314,19 @@
             overlay.classList.remove('show');
             popup.style.display = 'none';
         }
-        if (showPrint) {
-            footer.innerHTML = '<button type="button" class="msg-btn msg-btn-print" id="msgPopupPrint">Print</button><button type="button" class="msg-btn" id="msgPopupOk">OK</button>';
-            document.getElementById('msgPopupPrint').onclick = function() { window.print(); };
+        if (printReceiptUrl) {
+            footer.innerHTML = '<button type="button" class="msg-btn msg-btn-print" id="msgPopupPrintReceipt">Print receipt</button><button type="button" class="msg-btn" id="msgPopupOk">OK</button>';
+            document.getElementById('msgPopupPrintReceipt').onclick = function() {
+                closePopup();
+                var iframe = document.getElementById('pdfReceiptIframe');
+                var modalEl = document.getElementById('pdfReceiptModal');
+                if (iframe && modalEl) {
+                    iframe.src = printReceiptUrl;
+                    var modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+                    document.getElementById('pdfReceiptDoneBtn').onclick = function() { modal.hide(); };
+                }
+            };
             document.getElementById('msgPopupOk').onclick = closePopup;
         } else {
             footer.innerHTML = '<button type="button" class="msg-btn" id="msgPopupOk">OK</button>';
@@ -328,7 +390,7 @@
                     <select id="particulars" name="description" style="width: 50%; height: 30px;">
                         <option value="">— Select —</option>
                         @foreach($particulars ?? [] as $p)
-                            <option value="{{ $p->name }}" {{ old('description') == $p->name ? 'selected' : '' }}>{{ $p->name }}</option>
+                            <option value="{{ $p->name }}" data-modal-type="{{ $p->modal_type ?? '' }}" {{ old('description') == $p->name ? 'selected' : '' }}>{{ $p->name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -357,7 +419,7 @@
         <div class="container text-center">
             <div class="row row-cols-4" style="border:solid 1px #000;">
                 <div class="col" style="border:none; text-align: left;">
-                    <input type="radio" id="Cash" name="payment_method" value="Cash" {{ old('payment_method') == 'Cash' ? 'checked' : '' }}>
+                    <input type="radio" id="Cash" name="payment_method" value="Cash" {{ old('payment_method', 'Cash') == 'Cash' ? 'checked' : '' }}>
                     <label for="Cash"> Cash</label>
                 </div>
                 <div class="col">Bank name</div>
@@ -365,7 +427,7 @@
                 <div class="col">Date</div>
                 
                 <div class="col" style="border:none; text-align: left;">
-                    <input type="radio" id="Check" name="payment_method" value="Check" {{ old('payment_method') == 'Check' ? 'checked' : '' }}>
+                    <input type="radio" id="Check" name="payment_method" value="Check" {{ old('payment_method', 'Cash') == 'Check' ? 'checked' : '' }}>
                     <label for="Check"> Check</label>
                 </div>
                 <div class="col" id="receiptCheckBank" style="padding: 4px;"></div>
@@ -373,7 +435,7 @@
                 <div class="col" id="receiptCheckDate" style="padding: 4px;"></div>
                 
                 <div class="col" style="border:none; text-align: left;">
-                    <input type="radio" id="MoneyOrder" name="payment_method" value="Money Order" {{ old('payment_method') == 'Money Order' ? 'checked' : '' }}>
+                    <input type="radio" id="MoneyOrder" name="payment_method" value="Money Order" {{ old('payment_method', 'Cash') == 'Money Order' ? 'checked' : '' }}>
                     <label for="MoneyOrder"> Money Order</label>
                 </div>
                 <div class="col" style="border:none;"></div>
@@ -404,19 +466,9 @@
         </div>
         <div class="container text-center d-flex justify-content-between align-items-center flex-wrap gap-2" style="background-color: #ffffff00 !important;">
             <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelledOrModal" style="min-width: 140px;">Record cancelled OR</button>
-            <div>
-                <input type="hidden" name="action" id="formAction" value="save">
-                <button type="submit" class="btn btn-success me-2" 
-                    style="min-width:140px;"
-                    onclick="setAction('save')">
-                    Save receipt
-                </button>
-
-                <button type="submit" class="btn btn-primary"
-                    style="min-width:140px;"
-                    onclick="setAction('print')">
-                    Print
-                </button>
+            <div class="d-flex gap-2 flex-wrap align-items-center">
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="fillSampleBtn" title="Fill form with sample data for testing">Fill sample</button>
+                <button type="submit" class="btn btn-primary" style="min-width: 140px;">Save</button>
             </div>
         </div>
     </form>
@@ -464,6 +516,24 @@
     </div>
     @endif
 
+    <!-- PDF receipt modal: opens after Print, triggers browser print, then Done shows success -->
+    <div class="modal fade" id="pdfReceiptModal" tabindex="-1" aria-labelledby="pdfReceiptModalLabel">
+        <div class="modal-dialog modal-xl" style="max-width: 95%; height: 90vh;">
+            <div class="modal-content" style="height: 90vh;">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pdfReceiptModalLabel">Official receipt</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0" style="height: calc(90vh - 120px); overflow: hidden;">
+                    <iframe id="pdfReceiptIframe" style="width:100%; height:100%; border:none;" title="Receipt PDF"></iframe>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="pdfReceiptDoneBtn">Done</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Particulars modal (outside content layer so it displays above backdrop) -->
 <div class="modal fade" id="particularsModal" tabindex="-1" style="float: center;">
   <div class="modal-dialog" style="max-width: 1000px; overflow-y: auto;">
@@ -482,12 +552,6 @@
   </div>
 </div>
 
-<script>
-function setAction(action){
-    document.getElementById('formAction').value = action;
-}
-</script>
-
 <!-- Script for different particulars-->
 <script>
 document.getElementById("particulars").addEventListener("change", function() {
@@ -498,11 +562,26 @@ document.getElementById("particulars").addEventListener("change", function() {
 
     if (!value) return;
 
+    if (window._fillSample) {
+        window._fillSample = false;
+        if (modalBody) {
+            modalBody.innerHTML = '<div class="row"><div class="col-6">Amount</div><div class="col-6"><input type="text" class="form-control" id="simpleAmountInput" placeholder="0.00"></div></div>';
+            var inp = document.getElementById('simpleAmountInput');
+            if (inp) inp.value = '1500';
+            if (typeof populateSimpleToReceipt === 'function') populateSimpleToReceipt();
+        }
+        return;
+    }
+
+    let modalType = (this.options[this.selectedIndex].dataset.modalType || '').toLowerCase();
+    let mode = modalType;
+    if (!mode && value === 'Settlement of Cash Advance') mode = 'settlement';
+    if (!mode && value === 'Liquidation of Cash Advance') mode = 'liquidation';
+    if (!mode && value === 'Trust Fund') mode = 'trust';
+
     let content = "";
 
-    switch(value) {
-
-        case "Settlement of Cash Advance":
+    if (mode === 'settlement') {
             modalTitle.innerText = "Settlement of Cash Advance";
             content = `
                 <div class="row row-cols-3" style="text-align: center; font-weight: bold;">
@@ -551,9 +630,7 @@ document.getElementById("particulars").addEventListener("change", function() {
                 </div>
             </div>
             `;
-        break;
-
-        case "Liquidation of Cash Advance":
+    } else if (mode === 'liquidation') {
             modalTitle.innerText = "Liquidation of Cash Advance";
             content = `
                 <div class="row row-cols-3" style="text-align: center; font-weight: bold;">
@@ -602,7 +679,40 @@ document.getElementById("particulars").addEventListener("change", function() {
                 </div>
             </div>
             `;
-        break;
+    } else if (mode === 'trust') {
+            modalTitle.innerText = this.options[this.selectedIndex].text;
+            content = `
+                <div class="row row-cols-3" style="text-align: center; font-weight: bold;">
+                    <div class="col">Nature of Collection</div>
+                    <div class="col">Account Code</div>
+                    <div class="col">Amount</div>
+                </div>
+                <div class="row row-cols-3">
+                    <div class="col" style="padding: 10px;">To withdraw the amount from Drugs and Medication account, </div>
+                    <div class="col" style="padding: 10px;"></div>
+                    <div class="col" style="text-align: center; padding: 10px;"><input type="text" id="trustAmountInput" placeholder="Amount" style="width: 90%; text-align: right;"></div>
+                </div>
+                <div class="row row-cols-3">
+                    <div class="col" style="padding: 10px;">
+                        <label>Nature of Collection & Account Code</label>
+                        <input type="number" id="desCount" min="0" value="0"
+                            style="width:15%; text-align:center;">
+                        <button type="button" id="addDesBtn">Add</button>
+                        <button type="button" id="removeDesBtn">Remove</button>
+                    </div>
+                    <div class="col"></div>
+                    <div class="col"></div>
+                </div>
+
+                <div id="desContainer"></div>
+
+                <div class="row row-cols-3">
+                    <div class="col" style="padding: 10px;"><b>TOTAL</b></div>
+                    <div class="col"></div>
+                    <div class="col" style="text-align: left; padding: 10px;">P <input type="text" id="trustTotalInput" placeholder="total" readonly style="width: 90%; text-align: right;"></div>
+                </div>
+            `;
+    } else switch(value) {
 
         case "Remittance of Banaan Provincial Museum Shop Sale":
             modalTitle.innerText = "Remittance of Banaan Provincial Museum Shop Sale";
@@ -644,41 +754,6 @@ document.getElementById("particulars").addEventListener("change", function() {
             `;
         break;
 
-        case "Trust Fund":
-            modalTitle.innerText = "Trust Fund";
-            content = `
-                <div class="row row-cols-3" style="text-align: center; font-weight: bold;">
-                    <div class="col">Nature of Collection</div>
-                    <div class="col">Account Code</div>
-                    <div class="col">Amount</div>
-                </div>
-                <div class="row row-cols-3">
-                    <div class="col" style="padding: 10px;">To withdraw the amount from Drugs and Medication account, </div>
-                    <div class="col" style="padding: 10px;"></div>
-                    <div class="col" style="text-align: center; padding: 10px;"><input type="text" id="trustAmountInput" placeholder="Amount" style="width: 90%; text-align: right;"></div>
-                </div>
-                <div class="row row-cols-3">
-                    <div class="col" style="padding: 10px;">
-                        <label>Nature of Collection & Account Code</label>
-                        <input type="number" id="desCount" min="0" value="0"
-                            style="width:15%; text-align:center;">
-                        <button type="button" id="addDesBtn">Add</button>
-                        <button type="button" id="removeDesBtn">Remove</button>
-                    </div>
-                    <div class="col"></div>
-                    <div class="col"></div>
-                </div>
-
-                <div id="desContainer"></div>
-
-                <div class="row row-cols-3">
-                    <div class="col" style="padding: 10px;"><b>TOTAL</b></div>
-                    <div class="col"></div>
-                    <div class="col" style="text-align: left; padding: 10px;">P <input type="text" id="trustTotalInput" placeholder="total" readonly style="width: 90%; text-align: right;"></div>
-                </div>
-            `;
-        break;
-
         default:
             modalTitle.innerText = this.options[this.selectedIndex].text;
             content = `
@@ -691,7 +766,7 @@ document.getElementById("particulars").addEventListener("change", function() {
 
     modalBody.innerHTML = content;
 
-    if (value === "Settlement of Cash Advance") {
+    if (mode === 'settlement') {
 
         const rcdCountInput = document.getElementById("rcdCount");
         const rcdContainer = document.getElementById("rcdContainer");
@@ -823,7 +898,7 @@ document.getElementById("particulars").addEventListener("change", function() {
         });
     }
 
-    if (value === "Liquidation of Cash Advance") {
+    if (mode === 'liquidation') {
 
         const desCountInput = document.getElementById("desCount");
         const desContainer = document.getElementById("desContainer");
@@ -861,30 +936,17 @@ document.getElementById("particulars").addEventListener("change", function() {
         }
 
         function updateTotalDesDisplay() {
-            const totalEl = document.getElementById("totalDesDisplay");
-            if (!totalEl) return;
-            const inputs = desContainer.querySelectorAll("input.des-amount");
-            let sum = 0;
-            inputs.forEach(function(inp) {
-                const v = parseFloat(inp.value);
-                if (!isNaN(v)) sum += v;
-            });
-            totalEl.textContent = formatNumber(sum);
             updateCashRefundDisplay();
         }
 
         function updateCashRefundDisplay() {
             const cashRefundEl = document.getElementById("cashRefundDisplay");
             const cashAdvanceInput = document.getElementById("cashAdvanceInput");
-            if (!cashRefundEl || !cashAdvanceInput) return;
+            const totalSpendInput = document.getElementById("totalSpendInput");
+            if (!cashRefundEl || !cashAdvanceInput || !totalSpendInput) return;
             const cashAdvance = parseFloat(cashAdvanceInput.value.replace(/,/g, '')) || 0;
-            const inputs = desContainer.querySelectorAll("input.des-amount");
-            let totalDes = 0;
-            inputs.forEach(function(inp) {
-                const v = parseFloat(inp.value);
-                if (!isNaN(v)) totalDes += v;
-            });
-            const cashRefund = cashAdvance - totalDes;
+            const totalSpend = parseFloat(totalSpendInput.value.replace(/,/g, '')) || 0;
+            const cashRefund = cashAdvance - totalSpend;
             cashRefundEl.textContent = formatNumber(cashRefund);
             checkLiquidationMatch();
         }
@@ -901,21 +963,21 @@ document.getElementById("particulars").addEventListener("change", function() {
             const matched = hasLiquidation && Math.abs(cashRefundNum - liquidationNum) < 0.005;
             if (!hasLiquidation && cashRefundNum === 0) {
                 cashRefundCell.style.border = '';
-                liquidatiohnTotalInput.value = '';
-                liquidatiohnTotalInput.style.color = '';
-                liquidatiohnTotalInput.style.fontWeight = '';
+                liquidationTotalInput.value = '';
+                liquidationTotalInput.style.color = '';
+                liquidationTotalInput.style.fontWeight = '';
             } else if (matched) {
                 cashRefundCell.style.border = '2px solid #52b788';
                 cashRefundCell.style.borderRadius = '4px';
-                liquidatiohnTotalInput.value = formatNumber(cashRefundNum);
-                liquidatiohnTotalInput.style.color = '';
-                liquidatiohnTotalInput.style.fontWeight = 'normal';
+                liquidationTotalInput.value = formatNumber(cashRefundNum);
+                liquidationTotalInput.style.color = '';
+                liquidationTotalInput.style.fontWeight = 'normal';
             } else {
                 cashRefundCell.style.border = '2px solid #dc3545';
                 cashRefundCell.style.borderRadius = '4px';
-                liquidatiohnTotalInput.value = 'Incorrect value';
-                liquidatiohnTotalInput.style.color = '#dc3545';
-                liquidatiohnTotalInput.style.fontWeight = 'bold';
+                liquidationTotalInput.value = 'Incorrect value';
+                liquidationTotalInput.style.color = '#dc3545';
+                liquidationTotalInput.style.fontWeight = 'bold';
             }
         }
 
@@ -928,7 +990,17 @@ document.getElementById("particulars").addEventListener("change", function() {
         cashAdvanceInputEl.addEventListener("blur", function() {
             const n = parseFloat(this.value.replace(/,/g, ''));
             if (!isNaN(n) && n >= 0) this.value = formatNumber(n);
+            updateCashRefundDisplay();
         });
+        const totalSpendInputEl = document.getElementById("totalSpendInput");
+        if (totalSpendInputEl) {
+            totalSpendInputEl.addEventListener("input", updateCashRefundDisplay);
+            totalSpendInputEl.addEventListener("blur", function() {
+                const n = parseFloat(this.value.replace(/,/g, ''));
+                if (!isNaN(n) && n >= 0) this.value = formatNumber(n);
+                updateCashRefundDisplay();
+            });
+        }
 
         document.getElementById("liquidationAmountInput").addEventListener("input", checkLiquidationMatch);
         document.getElementById("liquidationAmountInput").addEventListener("blur", function() {
@@ -956,7 +1028,7 @@ document.getElementById("particulars").addEventListener("change", function() {
         });
     }
 
-    if (value === "Trust Fund") {
+    if (mode === 'trust') {
 
         const desCountInput = document.getElementById("desCount");
         const desContainer = document.getElementById("desContainer");
@@ -999,82 +1071,33 @@ document.getElementById("particulars").addEventListener("change", function() {
             return parts.join('.');
         }
 
-        function updateTotalDesDisplay() {
-            const totalEl = document.getElementById("totalDesDisplay");
-            if (!totalEl) return;
-            const inputs = desContainer.querySelectorAll("input.des-amount");
-            let sum = 0;
-            inputs.forEach(function(inp) {
-                const v = parseFloat(inp.value);
-                if (!isNaN(v)) sum += v;
-            });
-            totalEl.textContent = formatNumber(sum);
-            updateCashRefundDisplay();
-        }
-
-        function updateCashRefundDisplay() {
-            const cashRefundEl = document.getElementById("cashRefundDisplay");
-            const cashAdvanceInput = document.getElementById("cashAdvanceInput");
-            if (!cashRefundEl || !cashAdvanceInput) return;
-            const cashAdvance = parseFloat(cashAdvanceInput.value.replace(/,/g, '')) || 0;
-            const inputs = desContainer.querySelectorAll("input.des-amount");
-            let totalDes = 0;
-            inputs.forEach(function(inp) {
-                const v = parseFloat(inp.value);
-                if (!isNaN(v)) totalDes += v;
-            });
-            const cashRefund = cashAdvance - totalDes;
-            cashRefundEl.textContent = formatNumber(cashRefund);
-            checktrustMatch();
-        }
-
-        function checktrustMatch() {
-            const cashRefundEl = document.getElementById("cashRefundDisplay");
-            const cashRefundCell = document.getElementById("cashRefundCell");
+        function updateTrustTotal() {
             const trustAmountInput = document.getElementById("trustAmountInput");
             const trustTotalInput = document.getElementById("trustTotalInput");
-            if (!cashRefundEl || !cashRefundCell || !trustAmountInput || !trustTotalInput) return;
-            const cashRefundNum = parseFloat(cashRefundEl.textContent.replace(/,/g, '')) || 0;
-            const trustNum = parseFloat(trustAmountInput.value.replace(/,/g, ''));
-            const hasTrust = !isNaN(trustNum);
-            const matched = hasTrust && Math.abs(cashRefundNum - trustNum) < 0.005;
-            if (!hasTrust && cashRefundNum === 0) {
-                cashRefundCell.style.border = '';
-                trustTotalInput.value = '';
-                trustTotalInput.style.color = '';
-                trustTotalInput.style.fontWeight = '';
-            } else if (matched) {
-                cashRefundCell.style.border = '2px solid #52b788';
-                cashRefundCell.style.borderRadius = '4px';
-                trustTotalInput.value = formatNumber(cashRefundNum);
+            if (!trustAmountInput || !trustTotalInput) return;
+            const n = parseFloat(trustAmountInput.value.replace(/,/g, ''));
+            if (!isNaN(n) && n >= 0) {
+                trustTotalInput.value = formatNumber(n);
                 trustTotalInput.style.color = '';
                 trustTotalInput.style.fontWeight = 'normal';
             } else {
-                cashRefundCell.style.border = '2px solid #dc3545';
-                cashRefundCell.style.borderRadius = '4px';
-                trustTotalInput.value = 'Incorrect value';
-                trustTotalInput.style.color = '#dc3545';
-                trustTotalInput.style.fontWeight = 'bold';
+                trustTotalInput.value = '';
             }
         }
 
         desContainer.addEventListener("input", function(e) {
-            if (e.target.classList.contains("des-amount")) updateTotalDesDisplay();
+            if (e.target.classList.contains("des-amount")) { /* optional: could add per-row amount later */ }
         });
 
-        const cashAdvanceInputEl = document.getElementById("cashAdvanceInput");
-        cashAdvanceInputEl.addEventListener("input", updateCashRefundDisplay);
-        cashAdvanceInputEl.addEventListener("blur", function() {
-            const n = parseFloat(this.value.replace(/,/g, ''));
-            if (!isNaN(n) && n >= 0) this.value = formatNumber(n);
-        });
-
-        document.getElementById("trustAmountInput").addEventListener("input", checkTrustMatch);
-        document.getElementById("trustAmountInput").addEventListener("blur", function() {
-            const n = parseFloat(this.value.replace(/,/g, ''));
-            if (!isNaN(n) && n >= 0) this.value = formatNumber(n);
-            checkTrustMatch();
-        });
+        const trustAmountInputEl = document.getElementById("trustAmountInput");
+        if (trustAmountInputEl) {
+            trustAmountInputEl.addEventListener("input", updateTrustTotal);
+            trustAmountInputEl.addEventListener("blur", function() {
+                const n = parseFloat(this.value.replace(/,/g, ''));
+                if (!isNaN(n) && n >= 0) this.value = formatNumber(n);
+                updateTrustTotal();
+            });
+        }
 
         desCountInput.addEventListener("input", function () {
             generateDESInputs(parseInt(this.value) || 0);
@@ -1107,12 +1130,14 @@ document.getElementById("particulars").addEventListener("change", function() {
 <!-- Populate receipt from particulars modal when Enter is clicked -->
 <script>
 document.getElementById('particularsModalEnterBtn').addEventListener('click', function() {
-    var particulars = document.getElementById('particulars').value;
-    if (particulars === 'Settlement of Cash Advance') {
+    var sel = document.getElementById('particulars');
+    var particulars = sel.value;
+    var modalType = (sel.options[sel.selectedIndex].dataset.modalType || '').toLowerCase();
+    if (modalType === 'settlement' || particulars === 'Settlement of Cash Advance') {
         populateSettlementToReceipt();
-    } else if (particulars === 'Liquidation of Cash Advance') {
+    } else if (modalType === 'liquidation' || particulars === 'Liquidation of Cash Advance') {
         populateLiquidationToReceipt();
-    } else if (particulars === 'Trust Fund') {
+    } else if (modalType === 'trust' || particulars === 'Trust Fund') {
         populateTrustToReceipt();
     } else {
         populateSimpleToReceipt();
@@ -1159,12 +1184,64 @@ function populateSettlementToReceipt() {
 }
 
 function populateLiquidationToReceipt() {
-    var input = document.getElementById('liquidationAmountInput');
+    var liquidationTotalInput = document.getElementById('liquidationTotalInput');
+    var liquidationAmountInput = document.getElementById('liquidationAmountInput');
+    var cashAdvanceInput = document.getElementById('cashAdvanceInput');
+    var totalSpendInput = document.getElementById('totalSpendInput');
+    var cashRefundDisplay = document.getElementById('cashRefundDisplay');
+    var desContainer = document.getElementById('desContainer');
     var receiptNatureRows = document.getElementById('receiptNatureRows');
     var totalAmountDisplay = document.getElementById('totalAmountDisplay');
-    if (!input || !receiptNatureRows) return;
-    var amountNum = parseFloat(input.value.replace(/,/g, '')) || 0;
-    var rows = '<div class="row row-cols-3"><div class="col" style="padding: 10px; text-align: left;">Liquidation of Cash Advance</div><div class="col" style="padding: 10px; text-align: left;"></div><div class="col" style="padding: 10px; text-align: right;">P <input type="number" step="0.01" min="0" name="amount" id="receiptAmountInput" value="' + amountNum + '" style="width: 90%; text-align: right;" required></div></div>';
+    if (!receiptNatureRows) return;
+    var totalNum = 0;
+    if (liquidationTotalInput && liquidationTotalInput.value && liquidationTotalInput.value !== 'Incorrect value') {
+        totalNum = parseFloat(liquidationTotalInput.value.replace(/,/g, '')) || 0;
+    } else if (liquidationAmountInput) {
+        totalNum = parseFloat(liquidationAmountInput.value.replace(/,/g, '')) || 0;
+    }
+    var cashAdvanceNum = cashAdvanceInput ? parseFloat(cashAdvanceInput.value.replace(/,/g, '')) || 0 : 0;
+    var totalSpendNum = totalSpendInput ? parseFloat(totalSpendInput.value.replace(/,/g, '')) || 0 : 0;
+    var cashRefundNum = cashRefundDisplay ? parseFloat(cashRefundDisplay.textContent.replace(/,/g, '')) || 0 : 0;
+    var rows = '';
+    rows += '<div class="row row-cols-3"><div class="col" style="padding: 10px; text-align: left;">Liquidation of Cash Advance</div><div class="col" style="padding: 10px; text-align: left;"></div><div class="col" style="padding: 10px; text-align: right;">P <input type="number" step="0.01" min="0" name="amount" id="receiptAmountInput" value="' + totalNum + '" style="width: 90%; text-align: right;" required></div></div>';
+    rows += '<div class="row row-cols-3"><div class="col" style="padding: 10px; text-align: left;">Cash Advance:</div><div class="col" style="padding: 10px; text-align: left;">' + formatNumberReceipt(cashAdvanceNum) + '</div><div class="col" style="text-align: right;"></div></div>';
+    var desInputs = desContainer ? desContainer.querySelectorAll('input.des-amount') : [];
+    for (var i = 0; i < desInputs.length; i++) {
+        var desc = (desInputs[i].value || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        if (desc) rows += '<div class="row row-cols-3"><div class="col" style="padding: 10px; text-align: left;">' + desc + '</div><div class="col"></div><div class="col"></div></div>';
+    }
+    rows += '<div class="row row-cols-3"><div class="col" style="padding: 10px; text-align: left;">Total amount spend:</div><div class="col" style="padding: 10px; text-align: left;">' + formatNumberReceipt(totalSpendNum) + '</div><div class="col" style="text-align: right;"></div></div>';
+    rows += '<div class="row row-cols-3"><div class="col" style="padding: 10px; text-align: left;">Cash Refund:</div><div class="col" style="padding: 10px; text-align: left;">' + formatNumberReceipt(cashRefundNum) + '</div><div class="col" style="text-align: right;"></div></div>';
+    receiptNatureRows.innerHTML = rows;
+    if (totalAmountDisplay) totalAmountDisplay.textContent = formatNumberReceipt(totalNum);
+    if (typeof updateAmountInWords === 'function') updateAmountInWords();
+}
+
+function populateTrustToReceipt() {
+    var trustTotalInput = document.getElementById('trustTotalInput');
+    var trustAmountInput = document.getElementById('trustAmountInput');
+    var particularsSelect = document.getElementById('particulars');
+    var desContainer = document.getElementById('desContainer');
+    var receiptNatureRows = document.getElementById('receiptNatureRows');
+    var totalAmountDisplay = document.getElementById('totalAmountDisplay');
+    if (!receiptNatureRows || !particularsSelect) return;
+    var particularName = particularsSelect.value;
+    var amountNum = 0;
+    if (trustTotalInput && trustTotalInput.value) {
+        amountNum = parseFloat(trustTotalInput.value.replace(/,/g, '')) || 0;
+    } else if (trustAmountInput) {
+        amountNum = parseFloat(trustAmountInput.value.replace(/,/g, '')) || 0;
+    }
+    var rows = '';
+    rows += '<div class="row row-cols-3"><div class="col" style="padding: 10px; text-align: left;">' + particularName.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div><div class="col" style="padding: 10px; text-align: left;"></div><div class="col" style="padding: 10px; text-align: right;">P <input type="number" step="0.01" min="0" name="amount" id="receiptAmountInput" value="' + amountNum + '" style="width: 90%; text-align: right;" required></div></div>';
+    var desInputs = desContainer ? desContainer.querySelectorAll('input.des-amount') : [];
+    for (var i = 0; i < desInputs.length; i += 2) {
+        var nature = (desInputs[i] && desInputs[i].value) ? desInputs[i].value.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+        var accountCode = (desInputs[i + 1] && desInputs[i + 1].value) ? desInputs[i + 1].value.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+        if (nature || accountCode) {
+            rows += '<div class="row row-cols-3"><div class="col" style="padding: 10px; text-align: left;">' + nature + '</div><div class="col" style="padding: 10px; text-align: left;">' + accountCode + '</div><div class="col"></div></div>';
+        }
+    }
     receiptNatureRows.innerHTML = rows;
     if (totalAmountDisplay) totalAmountDisplay.textContent = formatNumberReceipt(amountNum);
     if (typeof updateAmountInWords === 'function') updateAmountInWords();
@@ -1330,6 +1407,37 @@ document.addEventListener('DOMContentLoaded', function() {
                 var v = parseFloat(e.target.value);
                 totalDisplay.textContent = formatNumber(v);
                 updateAmountInWords();
+            }
+        });
+    }
+    var fillSampleBtn = document.getElementById('fillSampleBtn');
+    if (fillSampleBtn) {
+        fillSampleBtn.addEventListener('click', function() {
+            var dateInput = document.querySelector('input[name="receipt_date"]');
+            var orInput = document.querySelector('input[name="receipt_number"]');
+            var payorInput = document.querySelector('input[name="payer_name"]');
+            var particularsSelect = document.getElementById('particulars');
+            if (dateInput) {
+                var d = new Date();
+                dateInput.value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+            }
+            if (orInput) orInput.value = String(Math.floor(1000000 + Math.random() * 9000000));
+            if (payorInput) payorInput.value = 'Sample Payor';
+            if (particularsSelect && particularsSelect.options.length > 1) {
+                var simpleOpt = null;
+                for (var i = 1; i < particularsSelect.options.length; i++) {
+                    var o = particularsSelect.options[i];
+                    var mt = (o.dataset && o.dataset.modalType) ? o.dataset.modalType.toLowerCase() : '';
+                    if (mt !== 'settlement' && mt !== 'liquidation' && mt !== 'trust') {
+                        simpleOpt = o;
+                        break;
+                    }
+                }
+                if (simpleOpt) {
+                    window._fillSample = true;
+                    particularsSelect.value = simpleOpt.value;
+                    particularsSelect.dispatchEvent(new Event('change'));
+                }
             }
         });
     }

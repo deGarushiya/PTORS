@@ -16,6 +16,7 @@ class Office extends Model
         'address',
         'contact',
         'is_active',
+        'fund_code',
     ];
 
     protected function casts(): array

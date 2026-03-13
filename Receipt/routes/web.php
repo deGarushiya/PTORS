@@ -8,8 +8,6 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Http\Controllers\PrintController;
 
-Route::get('/receipts/{id}/print', [PrintController::class, 'print'])->name('receipts.print');
-
 Route::get('/', function () {
     return view('login');
 })->name('login');
@@ -38,6 +36,7 @@ Route::post('/logout', function (Request $request) {
 })->name('logout')->middleware('auth');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/receipts/{id}/print', [PrintController::class, 'print'])->name('receipts.print');
     Route::get('/user', function () {
         $office = Office::firstOrCreate(
             ['code' => 'TREASURY'],
@@ -52,13 +51,20 @@ Route::middleware('auth')->group(function () {
     Route::post('/receipts/cancelled', [ReceiptController::class, 'storeCancelled'])->name('receipts.storeCancelled');
 
     Route::get('/report', function () {
-        $perPage = (int) request('per_page', 10);
-        $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
         $search = trim((string) request('search', ''));
-        $dateFrom = request('date_from');
-        $dateTo = request('date_to');
+        $dateParam = request('date');
         $paymentMethod = request('payment_method');
-        $query = \App\Models\Receipt::active()->with(['office', 'issuer']);
+
+        if ($dateParam) {
+            $date = \Carbon\Carbon::parse($dateParam)->startOfDay();
+        } else {
+            $latest = \App\Models\Receipt::active()->orderByDesc('receipt_date')->value('receipt_date');
+            $date = $latest ? \Carbon\Carbon::parse($latest)->startOfDay() : now()->startOfDay();
+        }
+        $dateStr = $date->format('Y-m-d');
+
+        $query = \App\Models\Receipt::active()->with(['office', 'issuer'])
+            ->whereDate('receipt_date', $dateStr);
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('receipt_number', 'like', '%' . $search . '%')
@@ -66,26 +72,22 @@ Route::middleware('auth')->group(function () {
                     ->orWhere('description', 'like', '%' . $search . '%');
             });
         }
-        if ($dateFrom) {
-            $query->whereDate('receipt_date', '>=', $dateFrom);
-        }
-        if ($dateTo) {
-            $query->whereDate('receipt_date', '<=', $dateTo);
-        }
         if ($paymentMethod && in_array($paymentMethod, ['Cash', 'Check', 'Money Order'])) {
             $query->where('payment_method', $paymentMethod);
         }
-        $receipts = $query->orderByDesc('receipt_date')
-            ->orderByDesc('id')
-            ->paginate($perPage)
-            ->withQueryString();
+        $receipts = $query->orderByDesc('id')->get();
+
+        $prevDay = $date->copy()->subDay()->format('Y-m-d');
+        $nextDay = $date->copy()->addDay()->format('Y-m-d');
+
         return view('report', [
             'receipts' => $receipts,
-            'perPage' => $perPage,
             'search' => $search,
-            'dateFrom' => $dateFrom,
-            'dateTo' => $dateTo,
+            'date' => $dateStr,
+            'dateDisplay' => $date->format('F j, Y'),
             'paymentMethod' => $paymentMethod,
+            'prevDay' => $prevDay,
+            'nextDay' => $nextDay,
         ]);
     })->name('report');
 

@@ -54,13 +54,9 @@ class ReceiptController extends Controller
             'receipt_date' => $validated['receipt_date'],
         ]);
 
-        if ($request->action === 'print') {
-        return redirect()->route('receipts.print', $receipt->id);
-    }
-
-    return redirect()->route('user')
-        ->with('success', 'Receipt saved successfully.')
-        ->with('success_receipt_saved', true);
+        return redirect()->route('user')
+            ->with('success', 'Receipt saved successfully.')
+            ->with('saved_receipt_id', $receipt->id);
     }
 
     /**

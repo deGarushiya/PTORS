@@ -29,5 +29,7 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Admin', 'role' => 'admin', 'password' => \Illuminate\Support\Facades\Hash::make('password')]
         );
         User::where('email', 'admin@example.com')->update(['role' => 'admin']);
+
+        $this->call(ReceiptSeeder::class);
     }
 }

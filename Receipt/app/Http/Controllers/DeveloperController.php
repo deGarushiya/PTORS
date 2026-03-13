@@ -28,7 +28,7 @@ class DeveloperController extends Controller
         }
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:particulars,name'],
-            'modal_type' => ['nullable', 'string', 'in:settlement,liquidation'],
+            'modal_type' => ['nullable', 'string', 'in:settlement,liquidation,trust'],
         ], [
             'name.unique' => 'This particular option already exists.',
         ]);
@@ -49,7 +49,7 @@ class DeveloperController extends Controller
         }
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:particulars,name,' . $particular->id],
-            'modal_type' => ['nullable', 'string', 'in:settlement,liquidation'],
+            'modal_type' => ['nullable', 'string', 'in:settlement,liquidation,trust'],
             'is_active' => ['boolean'],
         ]);
         $particular->update([

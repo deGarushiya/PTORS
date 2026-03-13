@@ -43,13 +43,13 @@
 <body>
     <table>
         <tr>
-            <td colspan="2" style="padding-top: 175px;">{{ $receipt->receipt_date }}</td>
+            <td colspan="2" style="padding-top: 175px;">{{ $receipt->receipt_date->format('F j, Y') }}</td>
             <td colspan="2"></td>
         </tr>
 
         <tr>
             <td colspan="3" style="padding-top: 15px;">PROVINCIAL TREASURY OFFICE</td>
-            <td style="padding-top: 15px; text-align: right;">100</td>
+            <td style="padding-top: 15px; text-align: right;">{{ $fundCode ?? '100' }}</td>
         </tr>
         <tr>
             <td colspan="4">{{ $receipt->payer_name }}</td>
@@ -71,20 +71,23 @@
             <td style="padding-top: 10px; text-align: right;">{{ number_format($receipt->amount,2) }}</td>
         </tr>
         <tr>
-            <td colspan="4" style="padding-top: 28px;">AMOUNT IN WORDS</td>
+            <td colspan="4" style="padding-top: 28px;">{{ $amountInWords ?? 'Zero and 00/100 pesos only' }}</td>
         </tr>
-
+        {{-- Payment method: 1 = Cash, 2 = Check, 3 = Money Order — only the selected one shows X --}}
         <tr>
-            <td colspan="4" style="padding-top: 20px;">X</td>
-        </tr>
-        <tr>
-            <td>X</td>
+            <td>{{ $receipt->payment_method === 'Cash' ? 'X' : '' }}</td>
             <td></td>
             <td></td>
             <td></td>
         </tr>
         <tr>
-            <td>X</td>
+            <td>{{ $receipt->payment_method === 'Check' ? 'X' : '' }}</td>
+            <td>{{ $receipt->payment_method === 'Check' ? ($receipt->check_bank_name ?? '') : '' }}</td>
+            <td>{{ $receipt->payment_method === 'Check' ? ($receipt->check_number ?? '') : '' }}</td>
+            <td>{{ $receipt->payment_method === 'Check' ? ($receipt->check_date ? $receipt->check_date->format('Y-m-d') : '') : '' }}</td>
+        </tr>
+        <tr>
+            <td>{{ $receipt->payment_method === 'Money Order' ? 'X' : '' }}</td>
             <td></td>
             <td></td>
             <td></td>
