@@ -42,6 +42,7 @@
 
 <body>
     <table>
+        <!-- DATE TO PAYOR -->
         <tr>
             <td colspan="2" style="padding-top: 175px;">{{ $receipt->receipt_date->format('F j, Y') }}</td>
             <td colspan="2"></td>
@@ -55,6 +56,7 @@
             <td colspan="4">{{ $receipt->payer_name }}</td>
         </tr>
 
+        <!-- PARTICULAR TO AMOUNT IN WORDS -->
         <tr>
             <td colspan="2"></td>
             <td></td>
@@ -73,6 +75,8 @@
         <tr>
             <td colspan="4" style="padding-top: 28px;">{{ $amountInWords ?? 'Zero and 00/100 pesos only' }}</td>
         </tr>
+
+        <!-- PAYMENT METHOD -->
         {{-- Payment method: 1 = Cash, 2 = Check, 3 = Money Order — only the selected one shows X --}}
         <tr>
             <td>{{ $receipt->payment_method === 'Cash' ? 'X' : '' }}</td>

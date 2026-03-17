@@ -577,7 +577,6 @@ document.getElementById("particulars").addEventListener("change", function() {
     let mode = modalType;
     if (!mode && value === 'Settlement of Cash Advance') mode = 'settlement';
     if (!mode && value === 'Liquidation of Cash Advance') mode = 'liquidation';
-    if (!mode && value === 'Trust Fund') mode = 'trust';
 
     let content = "";
 
@@ -679,40 +678,37 @@ document.getElementById("particulars").addEventListener("change", function() {
                 </div>
             </div>
             `;
-    } else if (mode === 'trust') {
-            modalTitle.innerText = this.options[this.selectedIndex].text;
+    } else switch(value) {
+
+        case "Trust Fund":
+            modalTitle.innerText = "Trust Fund";
             content = `
-                <div class="row row-cols-3" style="text-align: center; font-weight: bold;">
-                    <div class="col">Nature of Collection</div>
-                    <div class="col">Account Code</div>
-                    <div class="col">Amount</div>
-                </div>
-                <div class="row row-cols-3">
-                    <div class="col" style="padding: 10px;">To withdraw the amount from Drugs and Medication account, </div>
-                    <div class="col" style="padding: 10px;"></div>
-                    <div class="col" style="text-align: center; padding: 10px;"><input type="text" id="trustAmountInput" placeholder="Amount" style="width: 90%; text-align: right;"></div>
-                </div>
-                <div class="row row-cols-3">
-                    <div class="col" style="padding: 10px;">
-                        <label>Nature of Collection & Account Code</label>
-                        <input type="number" id="desCount" min="0" value="0"
-                            style="width:15%; text-align:center;">
-                        <button type="button" id="addDesBtn">Add</button>
-                        <button type="button" id="removeDesBtn">Remove</button>
+                <div class="row">
+                    <div class="col-9">
+                    To withdraw the amount from Drugs and Medication account, 
+                    LBP Lingayen CA#<input type="text" placeholder="Account Code">,
+                    <input type="text" placeholder="Hospital">, to be deposited to 
+                    LBP Lingayen CA# 2422-1042-51 Trust Fund (4)-Common Fund
                     </div>
-                    <div class="col"></div>
-                    <div class="col"></div>
-                </div>
-
-                <div id="desContainer"></div>
-
-                <div class="row row-cols-3">
-                    <div class="col" style="padding: 10px;"><b>TOTAL</b></div>
-                    <div class="col"></div>
-                    <div class="col" style="text-align: left; padding: 10px;">P <input type="text" id="trustTotalInput" placeholder="total" readonly style="width: 90%; text-align: right;"></div>
+                    <div class="col-3"><input type="text" class="form-control" id="simpleAmountInput" placeholder="0.00"></div>
                 </div>
             `;
-    } else switch(value) {
+        break;
+
+        case "General Fund":
+            modalTitle.innerText = "General Fund";
+            content = `
+                <div class="row">
+                    <div class="col-9">
+                    To withdraw the amount from General Fund <input type="text" placeholder="Hospital">
+                    Account No.<input type="text" placeholder="Account Code"> for deposit to General Fund 
+                    LBP Lingayen Account No. 2422-1000-51 representing income earned by <input type="text" disabled placeholder="Hospital">
+                    for the <input type="text" placeholder="_th Quarter Year">
+                    </div>
+                    <div class="col-3"><input type="text" class="form-control" id="simpleAmountInput" placeholder="0.00"></div>
+                </div>
+            `;
+        break;
 
         case "Remittance of Banaan Provincial Museum Shop Sale":
             modalTitle.innerText = "Remittance of Banaan Provincial Museum Shop Sale";
@@ -1028,96 +1024,6 @@ document.getElementById("particulars").addEventListener("change", function() {
         });
     }
 
-    if (mode === 'trust') {
-
-        const desCountInput = document.getElementById("desCount");
-        const desContainer = document.getElementById("desContainer");
-        const addBtn = document.getElementById("addDesBtn");
-        const removeBtn = document.getElementById("removeDesBtn");
-
-        function generateDESInputs(count) {
-            desContainer.innerHTML = "";
-
-            for (let i = 1; i <= count; i++) {
-                desContainer.innerHTML += `
-                    <div class="row row-cols-3" style="margin-bottom:5px;">
-                        <div class="col" style="padding: 10px;">
-                            <input type="text"
-                                class="des-amount"
-                                name="des[]"
-                                placeholder="Nature of Collection ${i}"
-                                style="width: 100%; text-align: center;">
-                        </div>
-                        <div class="col" style="padding: 10px;">
-                            <input type="text"
-                                class="des-amount"
-                                name="des[]"
-                                placeholder="Account Code ${i}"
-                                style="width: 100%; text-align: center;">
-                        </div>
-                        <div class="col"></div>
-                    </div>
-                    
-                `;
-            }
-            updateTotalDesDisplay();
-        }
-
-        function formatNumber(num) {
-            const n = Number(num);
-            if (isNaN(n)) return '0.00';
-            const parts = n.toFixed(2).split('.');
-            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-            return parts.join('.');
-        }
-
-        function updateTrustTotal() {
-            const trustAmountInput = document.getElementById("trustAmountInput");
-            const trustTotalInput = document.getElementById("trustTotalInput");
-            if (!trustAmountInput || !trustTotalInput) return;
-            const n = parseFloat(trustAmountInput.value.replace(/,/g, ''));
-            if (!isNaN(n) && n >= 0) {
-                trustTotalInput.value = formatNumber(n);
-                trustTotalInput.style.color = '';
-                trustTotalInput.style.fontWeight = 'normal';
-            } else {
-                trustTotalInput.value = '';
-            }
-        }
-
-        desContainer.addEventListener("input", function(e) {
-            if (e.target.classList.contains("des-amount")) { /* optional: could add per-row amount later */ }
-        });
-
-        const trustAmountInputEl = document.getElementById("trustAmountInput");
-        if (trustAmountInputEl) {
-            trustAmountInputEl.addEventListener("input", updateTrustTotal);
-            trustAmountInputEl.addEventListener("blur", function() {
-                const n = parseFloat(this.value.replace(/,/g, ''));
-                if (!isNaN(n) && n >= 0) this.value = formatNumber(n);
-                updateTrustTotal();
-            });
-        }
-
-        desCountInput.addEventListener("input", function () {
-            generateDESInputs(parseInt(this.value) || 0);
-        });
-
-        addBtn.addEventListener("click", function () {
-            let current = parseInt(desCountInput.value) || 0;
-            desCountInput.value = current + 1;
-            generateDESInputs(current + 1);
-        });
-
-        removeBtn.addEventListener("click", function () {
-            let current = parseInt(desCountInput.value) || 0;
-            if (current > 0) {
-                desCountInput.value = current - 1;
-                generateDESInputs(current - 1);
-            }
-        });
-    }
-
         let modal = new bootstrap.Modal(
             document.getElementById('particularsModal')
         );
@@ -1137,8 +1043,6 @@ document.getElementById('particularsModalEnterBtn').addEventListener('click', fu
         populateSettlementToReceipt();
     } else if (modalType === 'liquidation' || particulars === 'Liquidation of Cash Advance') {
         populateLiquidationToReceipt();
-    } else if (modalType === 'trust' || particulars === 'Trust Fund') {
-        populateTrustToReceipt();
     } else {
         populateSimpleToReceipt();
     }
@@ -1214,36 +1118,6 @@ function populateLiquidationToReceipt() {
     rows += '<div class="row row-cols-3"><div class="col" style="padding: 10px; text-align: left;">Cash Refund:</div><div class="col" style="padding: 10px; text-align: left;">' + formatNumberReceipt(cashRefundNum) + '</div><div class="col" style="text-align: right;"></div></div>';
     receiptNatureRows.innerHTML = rows;
     if (totalAmountDisplay) totalAmountDisplay.textContent = formatNumberReceipt(totalNum);
-    if (typeof updateAmountInWords === 'function') updateAmountInWords();
-}
-
-function populateTrustToReceipt() {
-    var trustTotalInput = document.getElementById('trustTotalInput');
-    var trustAmountInput = document.getElementById('trustAmountInput');
-    var particularsSelect = document.getElementById('particulars');
-    var desContainer = document.getElementById('desContainer');
-    var receiptNatureRows = document.getElementById('receiptNatureRows');
-    var totalAmountDisplay = document.getElementById('totalAmountDisplay');
-    if (!receiptNatureRows || !particularsSelect) return;
-    var particularName = particularsSelect.value;
-    var amountNum = 0;
-    if (trustTotalInput && trustTotalInput.value) {
-        amountNum = parseFloat(trustTotalInput.value.replace(/,/g, '')) || 0;
-    } else if (trustAmountInput) {
-        amountNum = parseFloat(trustAmountInput.value.replace(/,/g, '')) || 0;
-    }
-    var rows = '';
-    rows += '<div class="row row-cols-3"><div class="col" style="padding: 10px; text-align: left;">' + particularName.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div><div class="col" style="padding: 10px; text-align: left;"></div><div class="col" style="padding: 10px; text-align: right;">P <input type="number" step="0.01" min="0" name="amount" id="receiptAmountInput" value="' + amountNum + '" style="width: 90%; text-align: right;" required></div></div>';
-    var desInputs = desContainer ? desContainer.querySelectorAll('input.des-amount') : [];
-    for (var i = 0; i < desInputs.length; i += 2) {
-        var nature = (desInputs[i] && desInputs[i].value) ? desInputs[i].value.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
-        var accountCode = (desInputs[i + 1] && desInputs[i + 1].value) ? desInputs[i + 1].value.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
-        if (nature || accountCode) {
-            rows += '<div class="row row-cols-3"><div class="col" style="padding: 10px; text-align: left;">' + nature + '</div><div class="col" style="padding: 10px; text-align: left;">' + accountCode + '</div><div class="col"></div></div>';
-        }
-    }
-    receiptNatureRows.innerHTML = rows;
-    if (totalAmountDisplay) totalAmountDisplay.textContent = formatNumberReceipt(amountNum);
     if (typeof updateAmountInWords === 'function') updateAmountInWords();
 }
 
@@ -1428,7 +1302,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 for (var i = 1; i < particularsSelect.options.length; i++) {
                     var o = particularsSelect.options[i];
                     var mt = (o.dataset && o.dataset.modalType) ? o.dataset.modalType.toLowerCase() : '';
-                    if (mt !== 'settlement' && mt !== 'liquidation' && mt !== 'trust') {
+                    if (mt !== 'settlement' && mt !== 'liquidation') {
                         simpleOpt = o;
                         break;
                     }
