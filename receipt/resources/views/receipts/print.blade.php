@@ -58,14 +58,9 @@
 
         <!-- PARTICULAR TO AMOUNT IN WORDS -->
         <tr>
-            <td colspan="2"></td>
-            <td></td>
-            <td style="padding-top: 43px; text-align: right;">{{ number_format($receipt->amount,2) }}</td>
-        </tr>
-        <tr>
-            <td colspan="2" style="padding-bottom: 190px;"></td>
-            <td></td>
-            <td></td>
+            <td colspan="2" style="padding-top: 38px; padding-bottom: 195px; text-align: left">Nature of collection</td>
+            <td style="padding-top: 38px; padding-bottom: 195px; text-align: left">Account Code</td>
+            <td style="padding-top: 38px; padding-bottom: 195px; text-align: right; min-width: 78px">{{ number_format($receipt->amount,2) }}</td>
         </tr>
         <tr>
             <td colspan="2"></td>
@@ -73,7 +68,7 @@
             <td style="padding-top: 10px; text-align: right;">{{ number_format($receipt->amount,2) }}</td>
         </tr>
         <tr>
-            <td colspan="4" style="padding-top: 28px;">{{ $amountInWords ?? 'Zero and 00/100 pesos only' }}</td>
+            <td colspan="4" style="padding-top: 20px; padding-bottom: 10px;">{{ $amountInWords ?? 'Zero and 00/100 pesos only' }}</td>
         </tr>
 
         <!-- PAYMENT METHOD -->
@@ -86,21 +81,21 @@
         </tr>
         <tr>
             <td>{{ $receipt->payment_method === 'Check' ? 'X' : '' }}</td>
-            <td>{{ $receipt->payment_method === 'Check' ? ($receipt->check_bank_name ?? '') : '' }}</td>
-            <td>{{ $receipt->payment_method === 'Check' ? ($receipt->check_number ?? '') : '' }}</td>
-            <td>{{ $receipt->payment_method === 'Check' ? ($receipt->check_date ? $receipt->check_date->format('Y-m-d') : '') : '' }}</td>
+            <td style="text-align: right;">{{ $receipt->payment_method === 'Check' ? ($receipt->check_bank_name ?? '') : '' }}</td>
+            <td style="text-align: right;">{{ $receipt->payment_method === 'Check' ? ($receipt->check_number ?? '') : '' }}</td>
+            <td style="text-align: right;">{{ $receipt->payment_method === 'Check' ? ($receipt->check_date ? $receipt->check_date->format('Y-m-d') : '') : '' }}</td>
         </tr>
         <tr>
             <td>{{ $receipt->payment_method === 'Money Order' ? 'X' : '' }}</td>
             <td></td>
-            <td></td>
-            <td></td>
+            <td style="text-align: right;">{{ $receipt->payment_method === 'Money Order' ? ($receipt->check_number ?? '') : '' }}</td>
+            <td style="text-align: right;">{{ $receipt->payment_method === 'Money Order' ? ($receipt->check_date ? $receipt->check_date->format('Y-m-d') : '') : '' }}</td>
         </tr>
 
         <tr>
             <td></td>
             <td></td>
-            <td colspan="2" style="padding-top: 40px; font-size: 20px">ALMA CRUZ</td>
+            <td colspan="2" style="padding-top: 60px; padding-right: 15px; font-size: 20px; text-align: right">ALMA CRUZ</td>
         </tr>
 
     </table>
