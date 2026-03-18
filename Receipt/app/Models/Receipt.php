@@ -21,6 +21,7 @@ class Receipt extends Model
         'check_number',
         'check_date',
         'description',
+        'nature_of_collection',
         'notes',
         'receipt_date',
         'status',

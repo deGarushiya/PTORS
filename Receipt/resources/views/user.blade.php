@@ -338,9 +338,10 @@
     }
     </script>
     @if(isset($office))
-    <form method="POST" action="{{ route('receipts.store') }}" class="receipt-container">
+    <form method="POST" action="{{ route('receipts.store') }}" class="receipt-container" id="receiptForm">
         @csrf
         <input type="hidden" name="office_id" value="{{ $office->id }}">
+        <input type="hidden" name="nature_of_collection" id="natureOfCollectionInput" value="">
         <input type="hidden" name="check_bank_name" id="checkBankHidden" value="">
         <input type="hidden" name="check_number" id="checkNumberHidden" value="">
         <input type="hidden" name="check_date" id="checkDateHidden" value="">
@@ -1039,12 +1040,15 @@ document.getElementById('particularsModalEnterBtn').addEventListener('click', fu
     var sel = document.getElementById('particulars');
     var particulars = sel.value;
     var modalType = (sel.options[sel.selectedIndex].dataset.modalType || '').toLowerCase();
+    var amountFromModal = '';
+    var simpleInput = document.getElementById('simpleAmountInput');
+    if (simpleInput) amountFromModal = (simpleInput.value || '').trim();
     if (modalType === 'settlement' || particulars === 'Settlement of Cash Advance') {
         populateSettlementToReceipt();
     } else if (modalType === 'liquidation' || particulars === 'Liquidation of Cash Advance') {
         populateLiquidationToReceipt();
     } else {
-        populateSimpleToReceipt();
+        populateSimpleToReceipt(particulars, amountFromModal);
     }
 });
 
@@ -1121,20 +1125,45 @@ function populateLiquidationToReceipt() {
     if (typeof updateAmountInWords === 'function') updateAmountInWords();
 }
 
-function populateSimpleToReceipt() {
-    var input = document.getElementById('simpleAmountInput');
+function populateSimpleToReceipt(optParticularName, optAmountStr) {
     var particularsSelect = document.getElementById('particulars');
     var receiptNatureRows = document.getElementById('receiptNatureRows');
     var totalAmountDisplay = document.getElementById('totalAmountDisplay');
     if (!receiptNatureRows || !particularsSelect) return;
-    var particularName = particularsSelect.value;
+    var particularName = (optParticularName !== undefined && optParticularName !== null) ? String(optParticularName) : particularsSelect.value;
     var amountNum = 0;
-    if (input) amountNum = parseFloat(input.value.replace(/,/g, '')) || 0;
+    if (optAmountStr !== undefined && optAmountStr !== null && String(optAmountStr).trim() !== '') {
+        amountNum = parseFloat(String(optAmountStr).replace(/,/g, '')) || 0;
+    } else {
+        var input = document.getElementById('simpleAmountInput');
+        if (input) amountNum = parseFloat(input.value.replace(/,/g, '')) || 0;
+    }
     var rows = '<div class="row row-cols-3"><div class="col" style="padding: 10px; text-align: left;">' + particularName.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div><div class="col" style="padding: 10px; text-align: left;"></div><div class="col" style="padding: 10px; text-align: right;">P <input type="number" step="0.01" min="0" name="amount" id="receiptAmountInput" value="' + amountNum + '" style="width: 90%; text-align: right;" required></div></div>';
     receiptNatureRows.innerHTML = rows;
     if (totalAmountDisplay) totalAmountDisplay.textContent = formatNumberReceipt(amountNum);
     if (typeof updateAmountInWords === 'function') updateAmountInWords();
 }
+
+(function() {
+    var form = document.getElementById('receiptForm');
+    if (!form) return;
+    form.addEventListener('submit', function() {
+        var receiptNatureRows = document.getElementById('receiptNatureRows');
+        var input = document.getElementById('natureOfCollectionInput');
+        if (!receiptNatureRows || !input) return;
+        var rows = receiptNatureRows.querySelectorAll('.row.row-cols-3');
+        var lines = [];
+        for (var i = 0; i < rows.length; i++) {
+            var cols = rows[i].querySelectorAll('.col');
+            if (cols.length >= 2) {
+                var col1 = (cols[0].innerText || cols[0].textContent || '').trim().replace(/\s+/g, ' ');
+                var col2 = (cols[1].innerText || cols[1].textContent || '').trim().replace(/\s+/g, ' ');
+                lines.push(col2 ? (col1 + ' | ' + col2) : col1);
+            }
+        }
+        input.value = lines.join('\n');
+    });
+})();
 </script>
 
 <!-- Check Modal -->

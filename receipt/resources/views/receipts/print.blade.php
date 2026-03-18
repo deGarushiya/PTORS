@@ -56,10 +56,21 @@
             <td colspan="4">{{ $receipt->payer_name }}</td>
         </tr>
 
-        <!-- PARTICULAR TO AMOUNT IN WORDS -->
+        <!-- PARTICULAR TO AMOUNT IN WORDS (nature/account from modal when saved) -->
+        @php
+            $natureLines = [];
+            $accountLines = [];
+            if (!empty($receipt->nature_of_collection)) {
+                foreach (explode("\n", $receipt->nature_of_collection) as $line) {
+                    $parts = explode(' | ', $line, 2);
+                    $natureLines[] = trim($parts[0] ?? '');
+                    $accountLines[] = trim($parts[1] ?? '');
+                }
+            }
+        @endphp
         <tr>
-            <td colspan="2" style="padding-top: 38px; padding-bottom: 195px; text-align: left">Nature of collection</td>
-            <td style="padding-top: 38px; padding-bottom: 195px; text-align: left">Account Code</td>
+            <td colspan="2" style="padding-top: 38px; padding-bottom: 195px; text-align: left; vertical-align: top; white-space: pre-line;">@if(count($natureLines)){{ implode("\n", $natureLines) }}@else Nature of collection @endif</td>
+            <td style="padding-top: 38px; padding-bottom: 195px; text-align: left; vertical-align: top; white-space: pre-line;">@if(count($accountLines)){{ implode("\n", $accountLines) }}@else Account Code @endif</td>
             <td style="padding-top: 38px; padding-bottom: 195px; text-align: right; min-width: 78px">{{ number_format($receipt->amount,2) }}</td>
         </tr>
         <tr>

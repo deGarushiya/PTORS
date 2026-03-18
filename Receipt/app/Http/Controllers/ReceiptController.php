@@ -24,6 +24,7 @@ class ReceiptController extends Controller
             'check_number' => ['nullable', 'string', 'max:100'],
             'check_date' => ['nullable', 'date'],
             'description' => ['nullable', 'string', 'max:500'],
+            'nature_of_collection' => ['nullable', 'string', 'max:2000'],
             'receipt_number' => ['required', 'digits:7', 'unique:receipts,receipt_number'],
             'office_id' => ['required', 'exists:offices,id'],
         ], [
@@ -50,6 +51,7 @@ class ReceiptController extends Controller
             'check_number' => $validated['check_number'] ?? null,
             'check_date' => $validated['check_date'] ?? null,
             'description' => $validated['description'] ?? null,
+            'nature_of_collection' => $validated['nature_of_collection'] ?? null,
             'notes' => null,
             'receipt_date' => $validated['receipt_date'],
         ]);
