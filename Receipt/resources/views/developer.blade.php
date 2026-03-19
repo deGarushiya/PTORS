@@ -57,6 +57,10 @@
         <div class="dev-nav">
             <button type="button" class="dev-nav-btn active" data-pane="particulars">Particulars</button>
             <button type="button" class="dev-nav-btn" data-pane="banks">Banks</button>
+            <button type="button" class="dev-nav-btn" data-pane="hospitals">Hospitals</button>
+            <button type="button" class="dev-nav-btn" data-pane="trust-accounts">Trust Fund accounts</button>
+            <button type="button" class="dev-nav-btn" data-pane="general-accounts">General Fund accounts</button>
+            <button type="button" class="dev-nav-btn" data-pane="account-codes">Account codes</button>
         </div>
 
         <div class="dev-panel">
@@ -77,6 +81,7 @@
                                 <option value="settlement" {{ old('modal_type') == 'settlement' ? 'selected' : '' }}>Settlement of Cash Advance</option>
                                 <option value="liquidation" {{ old('modal_type') == 'liquidation' ? 'selected' : '' }}>Liquidation of Cash Advance</option>
                                 <option value="trust" {{ old('modal_type') == 'trust' ? 'selected' : '' }}>Trust Fund</option>
+                                <option value="general" {{ old('modal_type') == 'general' ? 'selected' : '' }}>General Fund</option>
                             </select>
                         </div>
                         <div class="col-md-2">
@@ -141,6 +146,162 @@
                             </tr>
                             @empty
                             <tr><td colspan="2" class="text-muted">No banks yet.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="pane-hospitals" class="dev-pane">
+                <h5 class="mb-3" style="color: #0d0875;">Hospitals (base list)</h5>
+                <p class="text-muted small">Add the main hospitals. Then link them to Trust Fund and General Fund accounts in the next panes.</p>
+                <form method="POST" action="{{ route('developer.hospitals.store') }}" class="mb-4">
+                    @csrf
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-8">
+                            <label for="new_hospital_name" class="form-label">Hospital name</label>
+                            <input type="text" name="name" id="new_hospital_name" class="form-control @error('name') is-invalid @enderror" placeholder="e.g. LINGAYEN DISTRICT HOSPITAL" value="{{ old('name') }}" required>
+                            @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-success w-100">Add</button>
+                        </div>
+                    </div>
+                </form>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead><tr><th>Hospital</th><th style="width: 90px;">Action</th></tr></thead>
+                        <tbody>
+                            @forelse($hospitals as $h)
+                            <tr>
+                                <td>{{ $h->name }}</td>
+                                <td><form method="POST" action="{{ route('developer.hospitals.destroy', $h) }}" style="display:inline;" onsubmit="return confirm('Remove?');">@csrf @method('DELETE')<button type="submit" class="btn btn-danger btn-sm">Remove</button></form></td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="2" class="text-muted">No hospitals yet.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="pane-trust-accounts" class="dev-pane">
+                <h5 class="mb-3" style="color: #0d0875;">Trust Fund accounts (hospital → account)</h5>
+                <p class="text-muted small">Link a hospital to a Trust Fund account. One hospital can have multiple entries (e.g. DM, PF, ACPS).</p>
+                <form method="POST" action="{{ route('developer.trust-accounts.store') }}" class="mb-4">
+                    @csrf
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-4">
+                            <label for="trust_hospital_id" class="form-label">Hospital</label>
+                            <select name="hospital_id" id="trust_hospital_id" class="form-select" required>
+                                <option value="">— Select —</option>
+                                @foreach($hospitals as $h)
+                                    <option value="{{ $h->id }}" {{ old('hospital_id') == $h->id ? 'selected' : '' }}>{{ $h->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="trust_name" class="form-label">Display name</label>
+                            <input type="text" name="name" id="trust_name" class="form-control @error('name') is-invalid @enderror" placeholder="e.g. LINGAYEN DISTRICT HOSPITAL - DM" value="{{ old('name') }}" required>
+                            @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-3">
+                            <label for="trust_account_code" class="form-label">Account code</label>
+                            <input type="text" name="account_code" id="trust_account_code" class="form-control @error('account_code') is-invalid @enderror" placeholder="e.g. 002422-1045-88" value="{{ old('account_code') }}" required>
+                            @error('account_code')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-success w-100">Add</button>
+                        </div>
+                    </div>
+                </form>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead><tr><th>Hospital</th><th>Display name</th><th>Account code</th><th style="width: 90px;">Action</th></tr></thead>
+                        <tbody>
+                            @forelse($hospitalTrustAccounts as $t)
+                            <tr>
+                                <td>{{ $t->hospital->name ?? '—' }}</td>
+                                <td>{{ $t->name }}</td>
+                                <td>{{ $t->account_code }}</td>
+                                <td><form method="POST" action="{{ route('developer.trust-accounts.destroy', $t) }}" style="display:inline;" onsubmit="return confirm('Remove?');">@csrf @method('DELETE')<button type="submit" class="btn btn-danger btn-sm">Remove</button></form></td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="4" class="text-muted">No Trust Fund accounts yet. Add hospitals first, then add here.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="pane-general-accounts" class="dev-pane">
+                <h5 class="mb-3" style="color: #0d0875;">General Fund accounts (hospital → account)</h5>
+                <p class="text-muted small">Link a hospital to one General Fund account code.</p>
+                <form method="POST" action="{{ route('developer.general-accounts.store') }}" class="mb-4">
+                    @csrf
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-5">
+                            <label for="general_hospital_id" class="form-label">Hospital</label>
+                            <select name="hospital_id" id="general_hospital_id" class="form-select" required>
+                                <option value="">— Select —</option>
+                                @foreach($hospitals as $h)
+                                    <option value="{{ $h->id }}" {{ old('hospital_id') == $h->id ? 'selected' : '' }}>{{ $h->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="general_account_code" class="form-label">Account code</label>
+                            <input type="text" name="account_code" id="general_account_code" class="form-control @error('account_code') is-invalid @enderror" placeholder="e.g. 2422-1060-68" value="{{ old('account_code') }}" required>
+                            @error('account_code')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-success w-100">Add / Update</button>
+                        </div>
+                    </div>
+                </form>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead><tr><th>Hospital</th><th>Account code</th><th style="width: 90px;">Action</th></tr></thead>
+                        <tbody>
+                            @forelse($hospitalGeneralAccounts as $g)
+                            <tr>
+                                <td>{{ $g->hospital->name ?? '—' }}</td>
+                                <td>{{ $g->account_code }}</td>
+                                <td><form method="POST" action="{{ route('developer.general-accounts.destroy', $g) }}" style="display:inline;" onsubmit="return confirm('Remove?');">@csrf @method('DELETE')<button type="submit" class="btn btn-danger btn-sm">Remove</button></form></td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="3" class="text-muted">No General Fund accounts yet. Add hospitals first, then add here.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="pane-account-codes" class="dev-pane">
+                <h5 class="mb-3" style="color: #0d0875;">Account codes (Trust Fund / General Fund modals)</h5>
+                <form method="POST" action="{{ route('developer.account-codes.store') }}" class="mb-4">
+                    @csrf
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-8">
+                            <label for="new_account_code_name" class="form-label">Add account code</label>
+                            <input type="text" name="name" id="new_account_code_name" class="form-control @error('name') is-invalid @enderror" placeholder="e.g. 2422-1042-51" value="{{ old('name') }}" required>
+                            @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-success w-100">Add</button>
+                        </div>
+                    </div>
+                </form>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead><tr><th>Account code</th><th style="width: 90px;">Action</th></tr></thead>
+                        <tbody>
+                            @forelse($accountCodes as $ac)
+                            <tr><td>{{ $ac->name }}</td>
+                                <td><form method="POST" action="{{ route('developer.account-codes.destroy', $ac) }}" style="display:inline;" onsubmit="return confirm('Remove?');">@csrf @method('DELETE')<button type="submit" class="btn btn-danger btn-sm">Remove</button></form></td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="2" class="text-muted">No account codes yet.</td></tr>
                             @endforelse
                         </tbody>
                     </table>

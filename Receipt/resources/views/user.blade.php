@@ -57,6 +57,10 @@
         .modal { z-index: 1060 !important; }
         .modal-backdrop { z-index: 1055 !important; }
 
+        body.embed-mode { padding-top: 0 !important; padding-bottom: 0 !important; }
+        body.embed-mode nav, body.embed-mode footer { display: none !important; }
+        body.embed-mode .receipt-container { margin-top: 0 !important; margin-bottom: 0 !important; }
+
         nav {
             list-style-type: none;
             margin: 0;
@@ -260,6 +264,9 @@
             @if(auth()->user()->isAdmin())
             <li class="nav-item">
                 <a class="nav-link" href="{{ route('admin') }}">Admin</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('developer') }}">Developer</a>
             </li>
             @endif
             <li class="nav-item ms-auto">
@@ -555,6 +562,10 @@
 
 <!-- Script for different particulars-->
 <script>
+window.HOSPITALS = @json($hospitals ?? []);
+window.ACCOUNT_CODES = @json($accountCodes ?? []);
+window.HOSPITAL_TRUST_ACCOUNTS = @json($hospitalTrustAccounts ?? []);
+window.HOSPITAL_GENERAL_ACCOUNTS = @json($hospitalGeneralAccounts ?? []);
 document.getElementById("particulars").addEventListener("change", function() {
 
     let value = this.value;
@@ -630,6 +641,19 @@ document.getElementById("particulars").addEventListener("change", function() {
                 </div>
             </div>
             `;
+    } else if (mode === 'trust') {
+            // Trust Fund modal: from hospital_trust_accounts table
+            var trustList = window.HOSPITAL_TRUST_ACCOUNTS || [];
+            var trustPairOpts = trustList.map(function(h) { var n = String(h.name || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); var c = String(h.account_code || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); return '<option value="'+n+'|||'+c+'">'+n+(c ? ' — '+c : '')+'</option>'; }).join('');
+            modalTitle.innerText = value;
+            content = '<div class="row"><div class="col-9">To withdraw the amount from Drugs and Medication account, LBP Lingayen CA# <select id="trustHospitalAccountSelect" class="form-select form-select-sm" style="min-width:220px;display:inline-block;"><option value="">— Select Hospital —</option>'+trustPairOpts+'</select>, to be deposited to LBP Lingayen CA# 2422-1042-51 Trust Fund (4)-Common Fund</div><div class="col-3"><input type="text" class="form-control" id="simpleAmountInput" placeholder="0.00"></div></div>';
+    } else if (mode === 'general') {
+            // General Fund modal: from hospital_general_accounts (hospital name + account_code)
+            var currentYear = new Date().getFullYear();
+            var generalList = window.HOSPITAL_GENERAL_ACCOUNTS || [];
+            var genPairOpts = generalList.map(function(h) { var n = String(h.name || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); var c = String(h.account_code || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); return '<option value="'+n+'|||'+c+'">'+n+(c ? ' — '+c : '')+'</option>'; }).join('');
+            modalTitle.innerText = value;
+            content = '<div class="row"><div class="col-9">To withdraw the amount from General Fund <select id="generalHospitalAccountSelect" class="form-select form-select-sm" style="min-width:220px;display:inline-block;"><option value="">— Select Hospital —</option>'+genPairOpts+'</select> for deposit to General Fund LBP Lingayen Account No. 2422-1000-51 representing income earned for the <select id="generalQuarterSelect" class="form-select form-select-sm" style="width:auto;display:inline-block;"><option value="1st">1st</option><option value="2nd">2nd</option><option value="3rd">3rd</option><option value="4th">4th</option></select> Quarter <input type="number" id="generalYearInput" min="2020" max="2035" value="'+currentYear+'" style="width:5em;display:inline-block;text-align:center;" title="Year"></div><div class="col-3"><input type="text" class="form-control" id="simpleAmountInput" placeholder="0.00"></div></div>';
     } else if (mode === 'liquidation') {
             modalTitle.innerText = "Liquidation of Cash Advance";
             content = `
@@ -679,80 +703,9 @@ document.getElementById("particulars").addEventListener("change", function() {
                 </div>
             </div>
             `;
-    } else switch(value) {
-
-        case "Trust Fund":
-            modalTitle.innerText = "Trust Fund";
-            content = `
-                <div class="row">
-                    <div class="col-9">
-                    To withdraw the amount from Drugs and Medication account, 
-                    LBP Lingayen CA#<input type="text" placeholder="Account Code">,
-                    <input type="text" placeholder="Hospital">, to be deposited to 
-                    LBP Lingayen CA# 2422-1042-51 Trust Fund (4)-Common Fund
-                    </div>
-                    <div class="col-3"><input type="text" class="form-control" id="simpleAmountInput" placeholder="0.00"></div>
-                </div>
-            `;
-        break;
-
-        case "General Fund":
-            modalTitle.innerText = "General Fund";
-            content = `
-                <div class="row">
-                    <div class="col-9">
-                    To withdraw the amount from General Fund <input type="text" placeholder="Hospital">
-                    Account No.<input type="text" placeholder="Account Code"> for deposit to General Fund 
-                    LBP Lingayen Account No. 2422-1000-51 representing income earned by <input type="text" disabled placeholder="Hospital">
-                    for the <input type="text" placeholder="_th Quarter Year">
-                    </div>
-                    <div class="col-3"><input type="text" class="form-control" id="simpleAmountInput" placeholder="0.00"></div>
-                </div>
-            `;
-        break;
-
-        case "Remittance of Banaan Provincial Museum Shop Sale":
-            modalTitle.innerText = "Remittance of Banaan Provincial Museum Shop Sale";
-            content = `
-                <div class="row">
-                    <div class="col-6">Total Sales</div>
-                    <div class="col-6"><input type="text" class="form-control" id="simpleAmountInput" placeholder="0.00"></div>
-                </div>
-            `;
-        break;
-
-        case "Payment of 25% Government LGU Share":
-            modalTitle.innerText = "Payment of 25% Government LGU Share";
-            content = `
-                <div class="row">
-                    <div class="col-6">LGU Share</div>
-                    <div class="col-6"><input type="text" class="form-control" id="simpleAmountInput" placeholder="0.00"></div>
-                </div>
-            `;
-        break;
-
-        case "Refund of Unexpected Cash Advance":
-            modalTitle.innerText = "Refund of Unexpected Cash Advance";
-            content = `
-                <div class="row">
-                    <div class="col-6">Refund Amount</div>
-                    <div class="col-6"><input type="text" class="form-control" id="simpleAmountInput" placeholder="0.00"></div>
-                </div>
-            `;
-        break;
-
-        case "Maip":
-            modalTitle.innerText = "Maip";
-            content = `
-                <div class="row">
-                    <div class="col-6">Amount</div>
-                    <div class="col-6"><input type="text" class="form-control" id="simpleAmountInput" placeholder="0.00"></div>
-                </div>
-            `;
-        break;
-
-        default:
-            modalTitle.innerText = this.options[this.selectedIndex].text;
+    } else {
+            // Simple (amount only) – modal_type empty/simple or any option with amount-only modal
+            modalTitle.innerText = value;
             content = `
                 <div class="row">
                     <div class="col-6">Amount</div>
@@ -1036,21 +989,48 @@ document.getElementById("particulars").addEventListener("change", function() {
 
 <!-- Populate receipt from particulars modal when Enter is clicked -->
 <script>
-document.getElementById('particularsModalEnterBtn').addEventListener('click', function() {
-    var sel = document.getElementById('particulars');
-    var particulars = sel.value;
-    var modalType = (sel.options[sel.selectedIndex].dataset.modalType || '').toLowerCase();
-    var amountFromModal = '';
-    var simpleInput = document.getElementById('simpleAmountInput');
-    if (simpleInput) amountFromModal = (simpleInput.value || '').trim();
-    if (modalType === 'settlement' || particulars === 'Settlement of Cash Advance') {
-        populateSettlementToReceipt();
-    } else if (modalType === 'liquidation' || particulars === 'Liquidation of Cash Advance') {
-        populateLiquidationToReceipt();
-    } else {
-        populateSimpleToReceipt(particulars, amountFromModal);
+(function() {
+    function attachEnterHandler() {
+        var btn = document.getElementById('particularsModalEnterBtn');
+        var receiptNatureRows = document.getElementById('receiptNatureRows');
+        if (!btn || !receiptNatureRows) return false;
+        btn.addEventListener('click', function() {
+            var sel = document.getElementById('particulars');
+            if (!sel) return;
+            var particulars = (sel.value || '').trim();
+            var modalType = (sel.options[sel.selectedIndex] && sel.options[sel.selectedIndex].dataset ? (sel.options[sel.selectedIndex].dataset.modalType || '') : '').toLowerCase();
+            var amountFromModal = '';
+            var simpleInput = document.getElementById('simpleAmountInput');
+            if (simpleInput) amountFromModal = (simpleInput.value || '').trim();
+            var trustPairSel = document.getElementById('trustHospitalAccountSelect');
+            var trustAccount = ''; var trustHosp = '';
+            if (trustPairSel && trustPairSel.value) { var p = trustPairSel.value.split('|||'); trustHosp = p[0] || ''; trustAccount = p[1] || ''; }
+            var genPairSel = document.getElementById('generalHospitalAccountSelect');
+            var genHospital = ''; var genAccount = '';
+            if (genPairSel && genPairSel.value) { var q = genPairSel.value.split('|||'); genHospital = q[0] || ''; genAccount = q[1] || ''; }
+            var genQuarterSel = document.getElementById('generalQuarterSelect');
+            var genYearInput = document.getElementById('generalYearInput');
+            var genQuarterStr = (genQuarterSel && genYearInput) ? (genQuarterSel.value || '') + ' Quarter ' + (genYearInput.value || '') : '';
+            if (modalType === 'settlement' || particulars === 'Settlement of Cash Advance') {
+                if (typeof populateSettlementToReceipt === 'function') populateSettlementToReceipt();
+            } else if (modalType === 'liquidation' || particulars === 'Liquidation of Cash Advance') {
+                if (typeof populateLiquidationToReceipt === 'function') populateLiquidationToReceipt();
+            } else if (modalType === 'trust') {
+                if (typeof populateTrustToReceipt === 'function') populateTrustToReceipt(particulars, amountFromModal, trustAccount, trustHosp);
+            } else if (modalType === 'general') {
+                if (typeof populateGeneralToReceipt === 'function') populateGeneralToReceipt(particulars, amountFromModal, genHospital, genAccount, genQuarterStr);
+            } else {
+                if (typeof populateSimpleToReceipt === 'function') populateSimpleToReceipt(particulars, amountFromModal);
+            }
+        });
+        return true;
     }
-});
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', attachEnterHandler);
+    } else {
+        attachEnterHandler();
+    }
+})();
 
 function formatNumberReceipt(num) {
     var n = Number(num);
@@ -1122,6 +1102,37 @@ function populateLiquidationToReceipt() {
     rows += '<div class="row row-cols-3"><div class="col" style="padding: 10px; text-align: left;">Cash Refund:</div><div class="col" style="padding: 10px; text-align: left;">' + formatNumberReceipt(cashRefundNum) + '</div><div class="col" style="text-align: right;"></div></div>';
     receiptNatureRows.innerHTML = rows;
     if (totalAmountDisplay) totalAmountDisplay.textContent = formatNumberReceipt(totalNum);
+    if (typeof updateAmountInWords === 'function') updateAmountInWords();
+}
+
+function populateTrustToReceipt(particularName, amountStr, accountCode, hospital) {
+    var receiptNatureRows = document.getElementById('receiptNatureRows');
+    var totalAmountDisplay = document.getElementById('totalAmountDisplay');
+    if (!receiptNatureRows) return;
+    var amountNum = parseFloat(String(amountStr || '').replace(/,/g, '')) || 0;
+    var safe = function(s) { return String(s || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').trim(); };
+    var ac = safe(accountCode);
+    var hosp = safe(hospital);
+    var phrase = 'To withdraw the amount from Drugs and Medication account, LBP Lingayen CA# ' + ac + ', ' + hosp + ', to be deposited to LBP Lingayen CA# 2422-1042-51 Trust Fund (4)-Common Fund';
+    var rows = '<div class="row row-cols-3"><div class="col" style="padding: 10px; text-align: left; white-space: normal;">' + phrase + '</div><div class="col" style="padding: 10px; text-align: left;"></div><div class="col" style="padding: 10px; text-align: right;">P <input type="number" step="0.01" min="0" name="amount" id="receiptAmountInput" value="' + amountNum + '" style="width: 90%; text-align: right;" required></div></div>';
+    receiptNatureRows.innerHTML = rows;
+    if (totalAmountDisplay) totalAmountDisplay.textContent = formatNumberReceipt(amountNum);
+    if (typeof updateAmountInWords === 'function') updateAmountInWords();
+}
+
+function populateGeneralToReceipt(particularName, amountStr, hospital, accountCode, quarter) {
+    var receiptNatureRows = document.getElementById('receiptNatureRows');
+    var totalAmountDisplay = document.getElementById('totalAmountDisplay');
+    if (!receiptNatureRows) return;
+    var amountNum = parseFloat(String(amountStr || '').replace(/,/g, '')) || 0;
+    var safe = function(s) { return String(s || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').trim(); };
+    var hosp = safe(hospital);
+    var ac = safe(accountCode);
+    var qtr = safe(quarter);
+    var phrase = 'To withdraw the amount from General Fund ' + hosp + ' Account No. ' + ac + ' for deposit to General Fund LBP Lingayen Account No. 2422-1000-51 representing income earned by ' + hosp + ' for the ' + qtr;
+    var rows = '<div class="row row-cols-3"><div class="col" style="padding: 10px; text-align: left; white-space: normal;">' + phrase + '</div><div class="col" style="padding: 10px; text-align: left;"></div><div class="col" style="padding: 10px; text-align: right;">P <input type="number" step="0.01" min="0" name="amount" id="receiptAmountInput" value="' + amountNum + '" style="width: 90%; text-align: right;" required></div></div>';
+    receiptNatureRows.innerHTML = rows;
+    if (totalAmountDisplay) totalAmountDisplay.textContent = formatNumberReceipt(amountNum);
     if (typeof updateAmountInWords === 'function') updateAmountInWords();
 }
 

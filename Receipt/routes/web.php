@@ -44,7 +44,39 @@ Route::middleware('auth')->group(function () {
         );
         $particulars = \App\Models\Particular::active()->ordered()->get() ?? collect();
         $banks = \App\Models\Bank::ordered()->get() ?? collect();
-        return view('user', ['office' => $office, 'particulars' => $particulars, 'banks' => $banks]);
+        $hospitals = \App\Models\Hospital::ordered()->get() ?? collect();
+        $accountCodes = \App\Models\AccountCode::ordered()->get() ?? collect();
+
+        $hospitalTrustAccounts = collect();
+        $hospitalGeneralAccounts = collect();
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('hospital_trust_accounts')) {
+                $hospitalTrustAccounts = \App\Models\HospitalTrustAccount::ordered()->get()->map(fn ($t) => ['name' => $t->name, 'account_code' => $t->account_code]);
+            }
+            if (\Illuminate\Support\Facades\Schema::hasTable('hospital_general_accounts')) {
+                $hospitalGeneralAccounts = \App\Models\HospitalGeneralAccount::ordered()->with('hospital')->get()->map(fn ($g) => ['name' => $g->hospital ? $g->hospital->name : '', 'account_code' => $g->account_code]);
+            }
+        } catch (\Throwable $e) {
+            // use fallback below
+        }
+        if ($hospitalTrustAccounts->isEmpty() && $hospitalGeneralAccounts->isEmpty() && $hospitals->isNotEmpty()) {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('hospitals', 'trust_account_code')) {
+                $hospitalTrustAccounts = $hospitals->filter(fn ($h) => !empty($h->trust_account_code))->map(fn ($h) => ['name' => $h->name, 'account_code' => $h->trust_account_code]);
+            }
+            if (\Illuminate\Support\Facades\Schema::hasColumn('hospitals', 'general_account_code')) {
+                $hospitalGeneralAccounts = $hospitals->filter(fn ($h) => !empty($h->general_account_code))->map(fn ($h) => ['name' => $h->name, 'account_code' => $h->general_account_code]);
+            }
+        }
+
+        return view('user', [
+            'office' => $office,
+            'particulars' => $particulars,
+            'banks' => $banks,
+            'hospitals' => $hospitals,
+            'accountCodes' => $accountCodes,
+            'hospitalTrustAccounts' => $hospitalTrustAccounts,
+            'hospitalGeneralAccounts' => $hospitalGeneralAccounts,
+        ]);
     })->name('user');
 
     Route::post('/receipts', [ReceiptController::class, 'store'])->name('receipts.store');
@@ -109,6 +141,14 @@ Route::middleware('auth')->group(function () {
     Route::delete('/developer/particulars/{particular}', [DeveloperController::class, 'destroyParticular'])->name('developer.particulars.destroy');
     Route::post('/developer/banks', [DeveloperController::class, 'storeBank'])->name('developer.banks.store');
     Route::delete('/developer/banks/{bank}', [DeveloperController::class, 'destroyBank'])->name('developer.banks.destroy');
+    Route::post('/developer/hospitals', [DeveloperController::class, 'storeHospital'])->name('developer.hospitals.store');
+    Route::delete('/developer/hospitals/{hospital}', [DeveloperController::class, 'destroyHospital'])->name('developer.hospitals.destroy');
+    Route::post('/developer/account-codes', [DeveloperController::class, 'storeAccountCode'])->name('developer.account-codes.store');
+    Route::delete('/developer/account-codes/{accountCode}', [DeveloperController::class, 'destroyAccountCode'])->name('developer.account-codes.destroy');
+    Route::post('/developer/trust-accounts', [DeveloperController::class, 'storeTrustAccount'])->name('developer.trust-accounts.store');
+    Route::delete('/developer/trust-accounts/{hospitalTrustAccount}', [DeveloperController::class, 'destroyTrustAccount'])->name('developer.trust-accounts.destroy');
+    Route::post('/developer/general-accounts', [DeveloperController::class, 'storeGeneralAccount'])->name('developer.general-accounts.store');
+    Route::delete('/developer/general-accounts/{hospitalGeneralAccount}', [DeveloperController::class, 'destroyGeneralAccount'])->name('developer.general-accounts.destroy');
 
     Route::post('/admin/backup', function () {
         if (!Auth::user()->isAdmin()) {
