@@ -44,18 +44,19 @@
     <table>
         <!-- DATE TO PAYOR -->
         <tr>
-            <td colspan="2" style="padding-top: 175px;">{{ $receipt->receipt_date->format('F j, Y') }}</td>
-            <td colspan="2"></td>
+            <td style="padding-top: 175px;">{{ $receipt->receipt_date->format('F j, Y') }}</td>
+            <td></td>
         </tr>
 
         <tr>
-            <td colspan="3" style="padding-top: 15px;">PROVINCIAL TREASURY OFFICE</td>
-            <td style="padding-top: 15px; text-align: right;">{{ $fundCode ?? '100' }}</td>
+            <td style="padding-top: 15px;">PROVINCIAL TREASURY OFFICE</td>
+            <td style="padding-top: 15px; text-align: right; min-width: 75px">{{ $fundCode ?? '100' }}</td>
         </tr>
         <tr>
-            <td colspan="4">{{ $receipt->payer_name }}</td>
+            <td colspan="2">{{ $receipt->payer_name }}</td>
         </tr>
-
+    </table>
+    <table>
         <!-- PARTICULAR TO AMOUNT IN WORDS (nature/account from modal when saved) -->
         @php
             $natureLines = [];
@@ -69,46 +70,55 @@
             }
         @endphp
         <tr>
-            <td colspan="2" style="padding-top: 38px; padding-bottom: 195px; text-align: left; vertical-align: top; white-space: pre-line;">@if(count($natureLines)){{ implode("\n", $natureLines) }}@else Nature of collection @endif</td>
-            <td style="padding-top: 38px; padding-bottom: 195px; text-align: left; vertical-align: top; white-space: pre-line;">@if(count($accountLines)){{ implode("\n", $accountLines) }}@else Account Code @endif</td>
-            <td style="padding-top: 38px; padding-bottom: 195px; text-align: right; min-width: 78px">{{ number_format($receipt->amount,2) }}</td>
+            <td style="font-size: 15px; height:230px; padding-top:18px; overflow:hidden; vertical-align: top; white-space:pre-line;">
+                @if(count($natureLines))
+                    {{ implode("\n", $natureLines) }}
+                @else 
+                    Nature of collection 
+                @endif
+            </td>
+            <td style="height:230px; padding-top:25px; overflow:hidden; vertical-align: top; white-space:pre-line;">
+                @if(count($accountLines))
+                    {{ implode("\n", $accountLines) }}
+                @else 
+                    Account Code 
+                @endif
+            </td>
+            <td style="height:230px; padding-top:20px; overflow:hidden; white-space:pre-line; text-align:right; vertical-align: top; min-width: 82px;">
+                    {{ number_format($receipt->amount,2) }}
+            </td>
         </tr>
         <tr>
-            <td colspan="2"></td>
             <td></td>
-            <td style="padding-top: 10px; text-align: right;">{{ number_format($receipt->amount,2) }}</td>
+            <td></td>
+            <td style="text-align: right;">{{ number_format($receipt->amount,2) }}</td>
         </tr>
         <tr>
-            <td colspan="4" style="padding-top: 20px; padding-bottom: 10px;">{{ $amountInWords ?? 'Zero and 00/100 pesos only' }}</td>
+            <td colspan="3" style="height:50px;">{{ $amountInWords ?? 'Zero and 00/100 pesos only' }}</td>
         </tr>
-
+    </table>
+    <table>
         <!-- PAYMENT METHOD -->
         {{-- Payment method: 1 = Cash, 2 = Check, 3 = Money Order — only the selected one shows X --}}
         <tr>
-            <td>{{ $receipt->payment_method === 'Cash' ? 'X' : '' }}</td>
-            <td></td>
-            <td></td>
-            <td></td>
+            <td colspan="4" style="height:15px;">{{ $receipt->payment_method === 'Cash' ? 'X' : '' }}</td>
         </tr>
         <tr>
-            <td>{{ $receipt->payment_method === 'Check' ? 'X' : '' }}</td>
-            <td style="text-align: right;">{{ $receipt->payment_method === 'Check' ? ($receipt->check_bank_name ?? '') : '' }}</td>
-            <td style="text-align: right;">{{ $receipt->payment_method === 'Check' ? ($receipt->check_number ?? '') : '' }}</td>
-            <td style="text-align: right;">{{ $receipt->payment_method === 'Check' ? ($receipt->check_date ? $receipt->check_date->format('Y-m-d') : '') : '' }}</td>
+            <td style="height:15px; vertical-align: top;">{{ $receipt->payment_method === 'Check' ? 'X' : '' }}</td>
+            <td style="text-align: right; height:15px; width:40px; vertical-align: top;">{{ $receipt->payment_method === 'Check' ? ($receipt->check_bank_name ?? '') : '' }}</td>
+            <td style="text-align: right; height:15px; width:40px; vertical-align: top;">{{ $receipt->payment_method === 'Check' ? ($receipt->check_number ?? '') : '' }}</td>
+            <td style="text-align: right; height:15px; width:50px; vertical-align: top;">{{ $receipt->payment_method === 'Check' ? ($receipt->check_date ? $receipt->check_date->format('m-d-Y') : '') : '' }}</td>
         </tr>
         <tr>
-            <td>{{ $receipt->payment_method === 'Money Order' ? 'X' : '' }}</td>
+            <td style="height:15px; vertical-align: top;">{{ $receipt->payment_method === 'Money Order' ? 'X' : '' }}</td>
             <td></td>
-            <td style="text-align: right;">{{ $receipt->payment_method === 'Money Order' ? ($receipt->check_number ?? '') : '' }}</td>
-            <td style="text-align: right;">{{ $receipt->payment_method === 'Money Order' ? ($receipt->check_date ? $receipt->check_date->format('Y-m-d') : '') : '' }}</td>
+            <td style="text-align: right; height:15px; width:40px; vertical-align: top;">{{ $receipt->payment_method === 'Money Order' ? ($receipt->check_number ?? '') : '' }}</td>
+            <td style="text-align: right; height:15px; width:50px; vertical-align: top;">{{ $receipt->payment_method === 'Money Order' ? ($receipt->check_date ? $receipt->check_date->format('m-d-Y') : '') : '' }}</td>
         </tr>
 
         <tr>
-            <td></td>
-            <td></td>
-            <td colspan="2" style="padding-top: 60px; padding-right: 15px; font-size: 20px; text-align: right">ALMA CRUZ</td>
+            <td colspan="4" style="padding-top: 30px; padding-right: 10px; font-size: 20px; text-align: right">ALMA C. CRUZ</td>
         </tr>
-
     </table>
 </body>
 </html>
