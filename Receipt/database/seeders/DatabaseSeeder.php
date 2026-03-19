@@ -21,6 +21,9 @@ class DatabaseSeeder extends Seeder
         if (\Illuminate\Support\Facades\Schema::hasTable('payors')) {
             $this->call(PayorSeeder::class);
         }
+        if (\Illuminate\Support\Facades\Schema::hasTable('hospitals')) {
+            $this->call(HospitalFundAccountsSeeder::class);
+        }
 
         // User::factory(10)->create();
         User::firstOrCreate(
