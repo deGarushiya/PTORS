@@ -49,9 +49,16 @@
         </tr>
 
         <tr>
-            <td style="padding-top: 15px;">PROVINCIAL TREASURY OFFICE</td>
-            <td style="padding-top: 15px; text-align: right; min-width: 75px">{{ $fundCode ?? '100' }}</td>
+            <td style="height:30px;"></td>
         </tr>
+        <!-- <tr>
+            <td style="padding-top: 15px;">
+                PROVINCIAL TREASURY OFFICE
+            </td>
+            <td style="padding-top: 15px; text-align: right; min-width: 75px">
+                {{ $fundCode ?? '100' }}
+            </td>
+        </tr> -->
         <tr>
             <td colspan="2">{{ $receipt->payer_name }}</td>
         </tr>
@@ -105,7 +112,7 @@
         </tr>
         <tr>
             <td style="height:15px; vertical-align: top;">{{ $receipt->payment_method === 'Check' ? 'X' : '' }}</td>
-            <td style="text-align: right; height:15px; width:40px; vertical-align: top;">{{ $receipt->payment_method === 'Check' ? trim(($receipt->check_bank_name ?? '') . ($receipt->check_branch_name ? ' - ' . $receipt->check_branch_name : '')) : '' }}</td>
+            <td style="text-align: right; height:15px; width:150px; vertical-align: top;">{{ $receipt->payment_method === 'Check' ? trim(($receipt->check_bank_name ?? '') . ($receipt->check_branch_name ? ' (' . $receipt->check_branch_name .')' : '')) : '' }}</td>
             <td style="text-align: right; height:15px; width:40px; vertical-align: top;">{{ $receipt->payment_method === 'Check' ? ($receipt->check_number ?? '') : '' }}</td>
             <td style="text-align: right; height:15px; width:50px; vertical-align: top;">{{ $receipt->payment_method === 'Check' ? ($receipt->check_date ? $receipt->check_date->format('m-d-Y') : '') : '' }}</td>
         </tr>
