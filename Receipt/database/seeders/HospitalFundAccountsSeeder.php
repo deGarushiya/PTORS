@@ -9,6 +9,31 @@ use Illuminate\Database\Seeder;
 
 class HospitalFundAccountsSeeder extends Seeder
 {
+    private function mapTrustAccountClass(string $displayName): ?string
+    {
+        $s = strtoupper($displayName);
+
+        // Special multi-class
+        if (str_contains($s, 'DM/PF')) return 'DM/PF';
+
+        // Other explicit classes
+        if (str_contains($s, 'TB DOTS')) return 'TB DOTS';
+        if (str_contains($s, 'XRAY')) return 'XRAY';
+        if (str_contains($s, 'DIALYSIS')) return 'DIALYSIS';
+
+        // ACPS variants: treat DM NEW ACPS => DM ACPS (same normalization).
+        if (str_contains($s, 'ACPS')) {
+            if (str_contains($s, 'DM')) return 'DM ACPS';
+            if (str_contains($s, 'PF')) return 'PF ACPS';
+        }
+
+        // Plain DM / PF
+        if (str_contains($s, 'DM')) return 'DM';
+        if (str_contains($s, 'PF')) return 'PF';
+
+        return null;
+    }
+
     public function run(): void
     {
         $baseHospitalNames = [
@@ -131,14 +156,18 @@ class HospitalFundAccountsSeeder extends Seeder
         foreach ($trustRows as $row) {
             $displayName = $row[0];
             $accountCode = $row[1];
+            $accountClass = $this->mapTrustAccountClass($displayName);
             $hospital = $hospitals->first(function ($h) use ($displayName) {
                 $n = $h->name;
                 return str_starts_with($displayName, $n . ' ') || str_starts_with($displayName, $n . '-') || $displayName === $n;
             });
             if ($hospital) {
                 HospitalTrustAccount::updateOrCreate(
-                    ['hospital_id' => $hospital->id, 'name' => $displayName],
-                    ['account_code' => $accountCode, 'sort_order' => ++$sortOrder]
+                    ['hospital_id' => $hospital->id, 'account_code' => $accountCode],
+                    [
+                        'account_class' => $accountClass,
+                        'sort_order' => ++$sortOrder,
+                    ]
                 );
             }
         }

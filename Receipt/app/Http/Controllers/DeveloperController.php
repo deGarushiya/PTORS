@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\AccountCode;
 use App\Models\Bank;
+use App\Models\BankBranch;
 use App\Models\Hospital;
 use App\Models\HospitalGeneralAccount;
 use App\Models\HospitalTrustAccount;
 use App\Models\Particular;
+use App\Models\Payor;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,11 +24,12 @@ class DeveloperController extends Controller
             return redirect()->route('user')->with('error', 'You do not have access.');
         }
         $particulars = Particular::ordered()->get();
-        $banks = Bank::ordered()->get();
+        $banks = Bank::ordered()->with('branches')->get();
         $hospitals = Hospital::ordered()->get();
         $accountCodes = AccountCode::ordered()->get();
         $hospitalTrustAccounts = HospitalTrustAccount::ordered()->with('hospital')->get();
         $hospitalGeneralAccounts = HospitalGeneralAccount::ordered()->with('hospital')->get();
+        $payors = \Illuminate\Support\Facades\Schema::hasTable('payors') ? Payor::ordered()->get() : collect();
         return view('developer', [
             'particulars' => $particulars,
             'banks' => $banks,
@@ -34,6 +37,7 @@ class DeveloperController extends Controller
             'accountCodes' => $accountCodes,
             'hospitalTrustAccounts' => $hospitalTrustAccounts,
             'hospitalGeneralAccounts' => $hospitalGeneralAccounts,
+            'payors' => $payors,
         ]);
     }
 
@@ -109,6 +113,55 @@ class DeveloperController extends Controller
         return redirect()->route('developer')->with('success', 'Bank removed.');
     }
 
+    public function storeBankBranch(Request $request): RedirectResponse
+    {
+        if (!Auth::user()->isAdmin()) {
+            return redirect()->route('user')->with('error', 'You do not have access.');
+        }
+        $validated = $request->validate([
+            'bank_id' => ['required', 'exists:banks,id'],
+            'name' => ['required', 'string', 'max:255'],
+        ]);
+        $bank = Bank::find($validated['bank_id']);
+        $maxOrder = $bank->branches()->max('sort_order') ?? 0;
+        $bank->branches()->create([
+            'name' => $validated['name'],
+            'sort_order' => $maxOrder + 1,
+        ]);
+        return redirect()->route('developer')->with('success', 'Bank branch added.');
+    }
+
+    public function destroyBankBranch(BankBranch $bankBranch): RedirectResponse
+    {
+        if (!Auth::user()->isAdmin()) {
+            return redirect()->route('user')->with('error', 'You do not have access.');
+        }
+        $bankBranch->delete();
+        return redirect()->route('developer')->with('success', 'Bank branch removed.');
+    }
+
+    public function storePayor(Request $request): RedirectResponse
+    {
+        if (!Auth::user()->isAdmin()) {
+            return redirect()->route('user')->with('error', 'You do not have access.');
+        }
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255', 'unique:payors,name'],
+        ], ['name.unique' => 'This payor already exists.']);
+        $maxOrder = Payor::max('sort_order') ?? 0;
+        Payor::create(['name' => $validated['name'], 'sort_order' => $maxOrder + 1]);
+        return redirect()->route('developer')->with('success', 'Payor added.');
+    }
+
+    public function destroyPayor(Payor $payor): RedirectResponse
+    {
+        if (!Auth::user()->isAdmin()) {
+            return redirect()->route('user')->with('error', 'You do not have access.');
+        }
+        $payor->delete();
+        return redirect()->route('developer')->with('success', 'Payor removed.');
+    }
+
     public function storeHospital(Request $request): RedirectResponse
     {
         if (!Auth::user()->isAdmin()) {
@@ -160,16 +213,20 @@ class DeveloperController extends Controller
         }
         $validated = $request->validate([
             'hospital_id' => ['required', 'exists:hospitals,id'],
-            'name' => ['required', 'string', 'max:255'],
+            'account_class' => ['nullable', 'string', 'max:50'],
             'account_code' => ['required', 'string', 'max:100'],
         ]);
         $maxOrder = HospitalTrustAccount::max('sort_order') ?? 0;
-        HospitalTrustAccount::create([
-            'hospital_id' => $validated['hospital_id'],
-            'name' => $validated['name'],
-            'account_code' => $validated['account_code'],
-            'sort_order' => $maxOrder + 1,
-        ]);
+        HospitalTrustAccount::updateOrCreate(
+            [
+                'hospital_id' => $validated['hospital_id'],
+                'account_class' => $validated['account_class'] ?: null,
+            ],
+            [
+                'account_code' => $validated['account_code'],
+                'sort_order' => $maxOrder + 1,
+            ]
+        );
         return redirect()->route('developer')->with('success', 'Trust Fund account added.');
     }
 

@@ -105,7 +105,7 @@
         </tr>
         <tr>
             <td style="height:15px; vertical-align: top;">{{ $receipt->payment_method === 'Check' ? 'X' : '' }}</td>
-            <td style="text-align: right; height:15px; width:40px; vertical-align: top;">{{ $receipt->payment_method === 'Check' ? ($receipt->check_bank_name ?? '') : '' }}</td>
+            <td style="text-align: right; height:15px; width:40px; vertical-align: top;">{{ $receipt->payment_method === 'Check' ? trim(($receipt->check_bank_name ?? '') . ($receipt->check_branch_name ? ' - ' . $receipt->check_branch_name : '')) : '' }}</td>
             <td style="text-align: right; height:15px; width:40px; vertical-align: top;">{{ $receipt->payment_method === 'Check' ? ($receipt->check_number ?? '') : '' }}</td>
             <td style="text-align: right; height:15px; width:50px; vertical-align: top;">{{ $receipt->payment_method === 'Check' ? ($receipt->check_date ? $receipt->check_date->format('m-d-Y') : '') : '' }}</td>
         </tr>

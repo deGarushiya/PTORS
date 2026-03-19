@@ -8,11 +8,9 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('hospital_trust_accounts', function (Blueprint $table) {
+        Schema::create('payors', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('hospital_id')->constrained('hospitals')->cascadeOnDelete();
-            $table->string('account_code', 100);
-            $table->string('account_class', 50)->nullable();
+            $table->string('name');
             $table->unsignedInteger('sort_order')->default(0);
             $table->timestamps();
         });
@@ -20,6 +18,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('hospital_trust_accounts');
+        Schema::dropIfExists('payors');
     }
 };

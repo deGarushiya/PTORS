@@ -8,7 +8,7 @@ class HospitalTrustAccount extends Model
 {
     protected $table = 'hospital_trust_accounts';
 
-    protected $fillable = ['hospital_id', 'name', 'account_code', 'sort_order'];
+    protected $fillable = ['hospital_id', 'account_code', 'account_class', 'sort_order'];
 
     public function hospital()
     {
@@ -17,6 +17,6 @@ class HospitalTrustAccount extends Model
 
     public function scopeOrdered($query)
     {
-        return $query->orderBy('sort_order')->orderBy('name');
+        return $query->orderBy('sort_order')->orderBy('id');
     }
 }

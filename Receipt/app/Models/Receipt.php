@@ -18,6 +18,7 @@ class Receipt extends Model
         'amount',
         'payment_method',
         'check_bank_name',
+        'check_branch_name',
         'check_number',
         'check_date',
         'description',

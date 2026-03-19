@@ -56,6 +56,7 @@
 
         <div class="dev-nav">
             <button type="button" class="dev-nav-btn active" data-pane="particulars">Particulars</button>
+            <button type="button" class="dev-nav-btn" data-pane="payors">Payors</button>
             <button type="button" class="dev-nav-btn" data-pane="banks">Banks</button>
             <button type="button" class="dev-nav-btn" data-pane="hospitals">Hospitals</button>
             <button type="button" class="dev-nav-btn" data-pane="trust-accounts">Trust Fund accounts</button>
@@ -114,6 +115,45 @@
                 </div>
             </div>
 
+            <div id="pane-payors" class="dev-pane">
+                <h5 class="mb-3" style="color: #0d0875;">Payors (receipt form dropdown)</h5>
+                <p class="text-muted small">Manage the list of payors shown in the Payor dropdown when creating a receipt.</p>
+                <form method="POST" action="{{ route('developer.payors.store') }}" class="mb-4">
+                    @csrf
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-8">
+                            <label for="new_payor_name" class="form-label">Add payor</label>
+                            <input type="text" name="name" id="new_payor_name" class="form-control @error('name') is-invalid @enderror" placeholder="e.g. Juan Dela Cruz" value="{{ old('name') }}" required>
+                            @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-success w-100">Add</button>
+                        </div>
+                    </div>
+                </form>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead><tr><th>Payor name</th><th style="width: 90px;">Action</th></tr></thead>
+                        <tbody>
+                            @forelse($payors as $payor)
+                            <tr>
+                                <td>{{ $payor->name }}</td>
+                                <td>
+                                    <form method="POST" action="{{ route('developer.payors.destroy', $payor) }}" style="display:inline;" onsubmit="return confirm('Remove?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="2" class="text-muted">No payors yet. Add entries to show in the receipt Payor dropdown.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <div id="pane-banks" class="dev-pane">
                 <h5 class="mb-3" style="color: #0d0875;">Banks (Check payment dropdown)</h5>
                 <form method="POST" action="{{ route('developer.banks.store') }}" class="mb-4">
@@ -129,7 +169,7 @@
                         </div>
                     </div>
                 </form>
-                <div class="table-responsive">
+                <div class="table-responsive mb-4">
                     <table class="table table-sm table-bordered">
                         <thead><tr><th>Bank name</th><th style="width: 90px;">Action</th></tr></thead>
                         <tbody>
@@ -147,6 +187,59 @@
                             @empty
                             <tr><td colspan="2" class="text-muted">No banks yet.</td></tr>
                             @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                <h6 class="mb-2" style="color: #0d0875;">Bank branches</h6>
+                <p class="text-muted small">Add ka rito ng branch per bank jowa</p>
+                <form method="POST" action="{{ route('developer.bank-branches.store') }}" class="mb-4">
+                    @csrf
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-4">
+                            <label for="branch_bank_id" class="form-label">Bank</label>
+                            <select name="bank_id" id="branch_bank_id" class="form-select" required>
+                                <option value="">— Select bank —</option>
+                                @foreach($banks as $b)
+                                    <option value="{{ $b->id }}" {{ old('bank_id') == $b->id ? 'selected' : '' }}>{{ $b->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="branch_name" class="form-label">Branch name</label>
+                            <input type="text" name="name" id="branch_name" class="form-control @error('name') is-invalid @enderror" placeholder="e.g. Lingayen Branch" value="{{ old('name') }}" required>
+                            @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-success w-100">Add branch</button>
+                        </div>
+                    </div>
+                </form>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead><tr><th>Bank</th><th>Branch</th><th style="width: 90px;">Action</th></tr></thead>
+                        <tbody>
+                            @php $branchCount = 0; @endphp
+                            @forelse($banks as $bank)
+                                @forelse($bank->branches as $br)
+                                <tr>
+                                    <td>{{ $bank->name }}</td>
+                                    <td>{{ $br->name }}</td>
+                                    <td>
+                                        <form method="POST" action="{{ route('developer.bank-branches.destroy', $br) }}" style="display:inline;" onsubmit="return confirm('Remove this branch?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                @php $branchCount++; @endphp
+                                @empty
+                                @endforelse
+                            @empty
+                            @endforelse
+                            @if($branchCount === 0)
+                            <tr><td colspan="3" class="text-muted">No branches yet. Add a bank above, then add branches here.</td></tr>
+                            @endif
                         </tbody>
                     </table>
                 </div>
@@ -201,9 +294,19 @@
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <label for="trust_name" class="form-label">Display name</label>
-                            <input type="text" name="name" id="trust_name" class="form-control @error('name') is-invalid @enderror" placeholder="e.g. LINGAYEN DISTRICT HOSPITAL - DM" value="{{ old('name') }}" required>
-                            @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <label for="trust_account_class" class="form-label">Account class</label>
+                            <select name="account_class" id="trust_account_class" class="form-select">
+                                <option value="">— None —</option>
+                                <option value="DM" {{ old('account_class') === 'DM' ? 'selected' : '' }}>DM</option>
+                                <option value="PF" {{ old('account_class') === 'PF' ? 'selected' : '' }}>PF</option>
+                                <option value="DM ACPS" {{ old('account_class') === 'DM ACPS' ? 'selected' : '' }}>DM ACPS</option>
+                                <option value="PF ACPS" {{ old('account_class') === 'PF ACPS' ? 'selected' : '' }}>PF ACPS</option>
+                                <option value="DM/PF" {{ old('account_class') === 'DM/PF' ? 'selected' : '' }}>DM/PF</option>
+                                <option value="XRAY" {{ old('account_class') === 'XRAY' ? 'selected' : '' }}>XRAY</option>
+                                <option value="DIALYSIS" {{ old('account_class') === 'DIALYSIS' ? 'selected' : '' }}>DIALYSIS</option>
+                                <option value="TB DOTS" {{ old('account_class') === 'TB DOTS' ? 'selected' : '' }}>TB DOTS</option>
+                            </select>
+                            @error('account_class')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-md-3">
                             <label for="trust_account_code" class="form-label">Account code</label>
@@ -217,12 +320,12 @@
                 </form>
                 <div class="table-responsive">
                     <table class="table table-sm table-bordered">
-                        <thead><tr><th>Hospital</th><th>Display name</th><th>Account code</th><th style="width: 90px;">Action</th></tr></thead>
+                        <thead><tr><th>Hospital</th><th>Account class</th><th>Account code</th><th style="width: 90px;">Action</th></tr></thead>
                         <tbody>
                             @forelse($hospitalTrustAccounts as $t)
                             <tr>
                                 <td>{{ $t->hospital->name ?? '—' }}</td>
-                                <td>{{ $t->name }}</td>
+                                <td>{{ $t->account_class ?? '—' }}</td>
                                 <td>{{ $t->account_code }}</td>
                                 <td><form method="POST" action="{{ route('developer.trust-accounts.destroy', $t) }}" style="display:inline;" onsubmit="return confirm('Remove?');">@csrf @method('DELETE')<button type="submit" class="btn btn-danger btn-sm">Remove</button></form></td>
                             </tr>

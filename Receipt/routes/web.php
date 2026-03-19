@@ -43,7 +43,11 @@ Route::middleware('auth')->group(function () {
             ['name' => 'Provincial Treasury Office', 'address' => null, 'contact' => null, 'is_active' => true]
         );
         $particulars = \App\Models\Particular::active()->ordered()->get() ?? collect();
-        $banks = \App\Models\Bank::ordered()->get() ?? collect();
+        $banks = \App\Models\Bank::ordered()->with('branches')->get() ?? collect();
+        $payors = collect();
+        if (\Illuminate\Support\Facades\Schema::hasTable('payors')) {
+            $payors = \App\Models\Payor::ordered()->get();
+        }
         $hospitals = \App\Models\Hospital::ordered()->get() ?? collect();
         $accountCodes = \App\Models\AccountCode::ordered()->get() ?? collect();
 
@@ -51,7 +55,11 @@ Route::middleware('auth')->group(function () {
         $hospitalGeneralAccounts = collect();
         try {
             if (\Illuminate\Support\Facades\Schema::hasTable('hospital_trust_accounts')) {
-                $hospitalTrustAccounts = \App\Models\HospitalTrustAccount::ordered()->get()->map(fn ($t) => ['name' => $t->name, 'account_code' => $t->account_code]);
+                $hospitalTrustAccounts = \App\Models\HospitalTrustAccount::ordered()->with('hospital')->get()->map(fn ($t) => [
+                    'name' => trim(($t->hospital ? $t->hospital->name : '') . ($t->account_class ? ' - ' . $t->account_class : '')),
+                    'account_code' => $t->account_code,
+                    'account_class' => $t->account_class,
+                ]);
             }
             if (\Illuminate\Support\Facades\Schema::hasTable('hospital_general_accounts')) {
                 $hospitalGeneralAccounts = \App\Models\HospitalGeneralAccount::ordered()->with('hospital')->get()->map(fn ($g) => ['name' => $g->hospital ? $g->hospital->name : '', 'account_code' => $g->account_code]);
@@ -61,7 +69,27 @@ Route::middleware('auth')->group(function () {
         }
         if ($hospitalTrustAccounts->isEmpty() && $hospitalGeneralAccounts->isEmpty() && $hospitals->isNotEmpty()) {
             if (\Illuminate\Support\Facades\Schema::hasColumn('hospitals', 'trust_account_code')) {
-                $hospitalTrustAccounts = $hospitals->filter(fn ($h) => !empty($h->trust_account_code))->map(fn ($h) => ['name' => $h->name, 'account_code' => $h->trust_account_code]);
+                $hospitalTrustAccounts = $hospitals->filter(fn ($h) => !empty($h->trust_account_code))->map(function ($h) {
+                    $s = strtoupper((string) $h->name);
+                    $accountClass = null;
+                    if (str_contains($s, 'DM/PF')) $accountClass = 'DM/PF';
+                    elseif (str_contains($s, 'TB DOTS')) $accountClass = 'TB DOTS';
+                    elseif (str_contains($s, 'XRAY')) $accountClass = 'XRAY';
+                    elseif (str_contains($s, 'DIALYSIS')) $accountClass = 'DIALYSIS';
+                    elseif (str_contains($s, 'ACPS')) {
+                        if (str_contains($s, 'DM')) $accountClass = 'DM ACPS';
+                        elseif (str_contains($s, 'PF')) $accountClass = 'PF ACPS';
+                    } else {
+                        if (str_contains($s, 'DM')) $accountClass = 'DM';
+                        elseif (str_contains($s, 'PF')) $accountClass = 'PF';
+                    }
+
+                    return [
+                        'name' => $h->name,
+                        'account_code' => $h->trust_account_code,
+                        'account_class' => $accountClass,
+                    ];
+                });
             }
             if (\Illuminate\Support\Facades\Schema::hasColumn('hospitals', 'general_account_code')) {
                 $hospitalGeneralAccounts = $hospitals->filter(fn ($h) => !empty($h->general_account_code))->map(fn ($h) => ['name' => $h->name, 'account_code' => $h->general_account_code]);
@@ -72,6 +100,7 @@ Route::middleware('auth')->group(function () {
             'office' => $office,
             'particulars' => $particulars,
             'banks' => $banks,
+            'payors' => $payors,
             'hospitals' => $hospitals,
             'accountCodes' => $accountCodes,
             'hospitalTrustAccounts' => $hospitalTrustAccounts,
@@ -141,6 +170,10 @@ Route::middleware('auth')->group(function () {
     Route::delete('/developer/particulars/{particular}', [DeveloperController::class, 'destroyParticular'])->name('developer.particulars.destroy');
     Route::post('/developer/banks', [DeveloperController::class, 'storeBank'])->name('developer.banks.store');
     Route::delete('/developer/banks/{bank}', [DeveloperController::class, 'destroyBank'])->name('developer.banks.destroy');
+    Route::post('/developer/bank-branches', [DeveloperController::class, 'storeBankBranch'])->name('developer.bank-branches.store');
+    Route::delete('/developer/bank-branches/{bankBranch}', [DeveloperController::class, 'destroyBankBranch'])->name('developer.bank-branches.destroy');
+    Route::post('/developer/payors', [DeveloperController::class, 'storePayor'])->name('developer.payors.store');
+    Route::delete('/developer/payors/{payor}', [DeveloperController::class, 'destroyPayor'])->name('developer.payors.destroy');
     Route::post('/developer/hospitals', [DeveloperController::class, 'storeHospital'])->name('developer.hospitals.store');
     Route::delete('/developer/hospitals/{hospital}', [DeveloperController::class, 'destroyHospital'])->name('developer.hospitals.destroy');
     Route::post('/developer/account-codes', [DeveloperController::class, 'storeAccountCode'])->name('developer.account-codes.store');

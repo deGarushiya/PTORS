@@ -18,6 +18,9 @@ class DatabaseSeeder extends Seeder
         $this->call(OfficeSeeder::class);
         $this->call(ParticularSeeder::class);
         $this->call(BankSeeder::class);
+        if (\Illuminate\Support\Facades\Schema::hasTable('payors')) {
+            $this->call(PayorSeeder::class);
+        }
 
         // User::factory(10)->create();
         User::firstOrCreate(

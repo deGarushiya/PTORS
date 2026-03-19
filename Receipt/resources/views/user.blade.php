@@ -350,6 +350,7 @@
         <input type="hidden" name="office_id" value="{{ $office->id }}">
         <input type="hidden" name="nature_of_collection" id="natureOfCollectionInput" value="">
         <input type="hidden" name="check_bank_name" id="checkBankHidden" value="">
+        <input type="hidden" name="check_branch_name" id="checkBranchHidden" value="">
         <input type="hidden" name="check_number" id="checkNumberHidden" value="">
         <input type="hidden" name="check_date" id="checkDateHidden" value="">
         <div class="container text-center">
@@ -389,7 +390,54 @@
                 <div class="col" style="padding: 10px; text-align: left;">FUND</div>
             </div>
             <div class="row row-cols-1">
-                <div class="col" style="padding: 10px; text-align: left;">Payor <input type="text" name="payer_name" value="{{ old('payer_name') }}" style="width: 100%;" required></div>
+                <div class="col" style="padding: 10px; text-align: left;">Payor
+                    <div class="payor-combo" style="display: flex; align-items: stretch; max-width: 100%;">
+                        <input type="text" name="payer_name" id="payer_name" class="form-control" value="{{ old('payer_name') }}" style="flex: 1; border-right: none; border-top-right-radius: 0; border-bottom-right-radius: 0;" required placeholder="Type or select payor" autocomplete="off">
+                        <button type="button" class="payor-combo-toggle btn btn-outline-secondary" style="border-left: none; border-top-left-radius: 0; border-bottom-left-radius: 0; padding: 0 10px;" title="Show list" aria-label="Show payor list">▼</button>
+                    </div>
+                    @if(isset($payors) && $payors->isNotEmpty())
+                    <div id="payor-dropdown" class="payor-dropdown" style="display: none; position: fixed; z-index: 1000; max-height: 220px; overflow-y: auto; background: #fff; border: 1px solid #ced4da; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-width: 200px;"></div>
+                    <script>
+                    (function() {
+                        var input = document.getElementById('payer_name');
+                        var toggle = input && input.closest('.payor-combo') && input.closest('.payor-combo').querySelector('.payor-combo-toggle');
+                        var panel = document.getElementById('payor-dropdown');
+                        var payors = @json(isset($payors) ? $payors->pluck('name')->toArray() : []);
+                        function showPanel() {
+                            if (!panel || !input) return;
+                            panel.innerHTML = payors.map(function(name) {
+                                return '<div class="payor-option" style="padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #eee;" data-value="' + name.replace(/"/g, '&quot;') + '" onmouseover="this.style.background=\'#f8f9fa\'" onmouseout="this.style.background=\'\'">' + name.replace(/</g, '&lt;') + '</div>';
+                            }).join('');
+                            if (payors.length === 0) panel.innerHTML = '<div style="padding: 8px 12px; color: #6c757d;">No payors in list</div>';
+                            var rect = input.getBoundingClientRect();
+                            panel.style.top = rect.bottom + 'px';
+                            panel.style.left = rect.left + 'px';
+                            panel.style.width = Math.max(rect.width, 200) + 'px';
+                            panel.style.display = 'block';
+                            panel.querySelectorAll('.payor-option').forEach(function(el) {
+                                el.addEventListener('click', function() {
+                                    input.value = this.getAttribute('data-value');
+                                    hidePanel();
+                                });
+                            });
+                        }
+                        function hidePanel() {
+                            if (panel) panel.style.display = 'none';
+                        }
+                        if (toggle) toggle.addEventListener('click', function() {
+                            if (panel.style.display === 'none') showPanel(); else hidePanel();
+                        });
+                        if (input) {
+                            input.addEventListener('focus', showPanel);
+                            input.addEventListener('input', function() { if (panel.style.display !== 'none') showPanel(); });
+                        }
+                        document.addEventListener('click', function(e) {
+                            if (panel && input && toggle && panel.style.display !== 'none' && !panel.contains(e.target) && !input.contains(e.target) && !toggle.contains(e.target)) hidePanel();
+                        });
+                    })();
+                    </script>
+                    @endif
+                </div>
             </div>
         </div>
         <div class="container text-center">
@@ -644,7 +692,33 @@ document.getElementById("particulars").addEventListener("change", function() {
     } else if (mode === 'trust') {
             // Trust Fund modal: from hospital_trust_accounts table
             var trustList = window.HOSPITAL_TRUST_ACCOUNTS || [];
-            var trustPairOpts = trustList.map(function(h) { var n = String(h.name || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); var c = String(h.account_code || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); return '<option value="'+n+'|||'+c+'">'+n+(c ? ' — '+c : '')+'</option>'; }).join('');
+            // drugs and medicines muna ngayon jowa. saka na yung pf chuchuness
+            var vUpper = String(value || '').toUpperCase();
+            var wantDmOnly = vUpper.indexOf('DRUG') !== -1 || vUpper.indexOf('MEDIC') !== -1 || vUpper.indexOf('DM') !== -1;
+            function normalizeTrustAccountClass(h) {
+                var cls = h && h.account_class ? String(h.account_class || '').trim() : '';
+                if (cls) return cls;
+                var s = String(h && h.name ? h.name : '').toUpperCase();
+                if (s.indexOf('DM/PF') !== -1) return 'DM/PF';
+                if (s.indexOf('TB DOTS') !== -1) return 'TB DOTS';
+                if (s.indexOf('XRAY') !== -1) return 'XRAY';
+                if (s.indexOf('DIALYSIS') !== -1) return 'DIALYSIS';
+                if (s.indexOf('ACPS') !== -1) {
+                    if (s.indexOf('DM') !== -1) return 'DM ACPS';
+                    if (s.indexOf('PF') !== -1) return 'PF ACPS';
+                }
+                if (s.indexOf('DM') !== -1) return 'DM';
+                if (s.indexOf('PF') !== -1) return 'PF';
+                return '';
+            }
+            var trustFiltered = trustList;
+            if (wantDmOnly) {
+                trustFiltered = trustList.filter(function(h) {
+                    var cls = normalizeTrustAccountClass(h);
+                    return cls === 'DM' || cls === 'DM ACPS' || cls === 'DM/PF' || (cls && cls.indexOf('DM') === 0);
+                });
+            }
+            var trustPairOpts = trustFiltered.map(function(h) { var n = String(h.name || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); var c = String(h.account_code || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); return '<option value="'+n+'|||'+c+'">'+n+(c ? ' — '+c : '')+'</option>'; }).join('');
             modalTitle.innerText = value;
             content = '<div class="row"><div class="col-9">To withdraw the amount from Drugs and Medication account, LBP Lingayen CA# <select id="trustHospitalAccountSelect" class="form-select form-select-sm" style="min-width:220px;display:inline-block;"><option value="">— Select Hospital —</option>'+trustPairOpts+'</select>, to be deposited to LBP Lingayen CA# 2422-1042-51 Trust Fund (4)-Common Fund</div><div class="col-3"><input type="text" class="form-control" id="simpleAmountInput" placeholder="0.00"></div></div>';
     } else if (mode === 'general') {
@@ -1186,18 +1260,24 @@ function populateSimpleToReceipt(optParticularName, optAmountStr) {
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <div class="row row-cols-3">
+        <div class="row row-cols-4">
             <div class="col">Drawee Bank</div>
+            <div class="col">Branch</div>
             <div class="col">Number</div>
             <div class="col">Date</div>
         </div>
-        <div class="row row-cols-3">
+        <div class="row row-cols-4">
             <div class="col" style="padding: 10px;">
                 <select id="checkBankInput" class="form-select" style="width: 100%;">
                     <option value="">— Select bank —</option>
                     @foreach($banks ?? [] as $bank)
                         <option value="{{ $bank->name }}">{{ $bank->name }}</option>
                     @endforeach
+                </select>
+            </div>
+            <div class="col" style="padding: 10px;">
+                <select id="checkBranchInput" class="form-select" style="width: 100%;" disabled>
+                    <option value="">— Select bank first —</option>
                 </select>
             </div>
             <div class="col" style="padding: 10px;"><input type="text" id="checkNumberInput" style="width: 100%; text-align: center;" placeholder="Check number"></div>
@@ -1236,6 +1316,9 @@ function populateSimpleToReceipt(optParticularName, optAmountStr) {
   </div>
 </div>
 
+<script>
+    window.BANK_BRANCHES = @json(isset($banks) && $banks->isNotEmpty() ? $banks->keyBy('name')->map(function($b) { return $b->branches->sortBy('sort_order')->pluck('name')->values()->toArray(); })->toArray() : []);
+</script>
 <!-- Script for check and money order-->
 <script>
     const checkboxes = document.querySelectorAll('#Cash, #Check, #MoneyOrder');
@@ -1254,20 +1337,46 @@ function populateSimpleToReceipt(optParticularName, optAmountStr) {
         });
     });
 
+    var checkBankInput = document.getElementById('checkBankInput');
+    var checkBranchInput = document.getElementById('checkBranchInput');
+    if (checkBankInput && checkBranchInput) {
+        checkBankInput.addEventListener('change', function() {
+            var bankName = this.value;
+            var branches = (typeof window.BANK_BRANCHES !== 'undefined' && window.BANK_BRANCHES[bankName]) ? window.BANK_BRANCHES[bankName] : [];
+            checkBranchInput.innerHTML = '';
+            var opt0 = document.createElement('option');
+            opt0.value = '';
+            opt0.textContent = branches.length ? '— Select branch —' : '— No branches —';
+            checkBranchInput.appendChild(opt0);
+            branches.forEach(function(name) {
+                var opt = document.createElement('option');
+                opt.value = name;
+                opt.textContent = name;
+                checkBranchInput.appendChild(opt);
+            });
+            checkBranchInput.disabled = !bankName;
+        });
+    }
+
     document.getElementById('checkModalEnterBtn').addEventListener('click', function() {
         var bank = document.getElementById('checkBankInput');
+        var branch = document.getElementById('checkBranchInput');
         var num = document.getElementById('checkNumberInput');
         var date = document.getElementById('checkDateInput');
         var bankVal = bank ? bank.value : '';
+        var branchVal = (branch && branch.value) ? branch.value : '';
         var numVal = num ? num.value : '';
         var dateVal = date ? date.value : '';
-        document.getElementById('receiptCheckBank').textContent = bankVal;
+        var bankDisplay = bankVal + (branchVal ? ' - ' + branchVal : '');
+        document.getElementById('receiptCheckBank').textContent = bankDisplay;
         document.getElementById('receiptCheckNumber').textContent = numVal;
         document.getElementById('receiptCheckDate').textContent = dateVal;
         var bankHidden = document.getElementById('checkBankHidden');
+        var branchHidden = document.getElementById('checkBranchHidden');
         var numHidden = document.getElementById('checkNumberHidden');
         var dateHidden = document.getElementById('checkDateHidden');
         if (bankHidden) bankHidden.value = bankVal;
+        if (branchHidden) branchHidden.value = branchVal;
         if (numHidden) numHidden.value = numVal;
         if (dateHidden) dateHidden.value = dateVal;
     });
@@ -1329,14 +1438,14 @@ document.addEventListener('DOMContentLoaded', function() {
         fillSampleBtn.addEventListener('click', function() {
             var dateInput = document.querySelector('input[name="receipt_date"]');
             var orInput = document.querySelector('input[name="receipt_number"]');
-            var payorInput = document.querySelector('input[name="payer_name"]');
+            var payorEl = document.getElementById('payer_name') || document.querySelector('[name="payer_name"]');
             var particularsSelect = document.getElementById('particulars');
             if (dateInput) {
                 var d = new Date();
                 dateInput.value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
             }
             if (orInput) orInput.value = String(Math.floor(1000000 + Math.random() * 9000000));
-            if (payorInput) payorInput.value = 'Sample Payor';
+            if (payorEl) payorEl.value = 'Sample Payor';
             if (particularsSelect && particularsSelect.options.length > 1) {
                 var simpleOpt = null;
                 for (var i = 1; i < particularsSelect.options.length; i++) {
