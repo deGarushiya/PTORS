@@ -49,7 +49,7 @@
         </tr>
 
         <tr>
-            <td style="height:30px;"></td>
+            <td style="height:26px;"></td>
         </tr>
         <!-- <tr>
             <td style="padding-top: 15px;">
@@ -77,21 +77,21 @@
             }
         @endphp
         <tr>
-            <td style="font-size: 15px; height:230px; padding-top:18px; overflow:hidden; vertical-align: top; white-space:pre-line;">
+            <td style="font-size: 15px; height:227px; padding-top:18px; overflow:hidden; vertical-align: top; white-space:pre-line;">
                 @if(count($natureLines))
                     {{ implode("\n", $natureLines) }}
                 @else 
                     Nature of collection 
                 @endif
             </td>
-            <td style="height:230px; padding-top:25px; overflow:hidden; vertical-align: top; white-space:pre-line;">
+            <td style="height:227px; padding-top:25px; overflow:hidden; vertical-align: top; white-space:pre-line;">
                 @if(count($accountLines))
                     {{ implode("\n", $accountLines) }}
                 @else 
                     Account Code 
                 @endif
             </td>
-            <td style="height:230px; padding-top:20px; overflow:hidden; white-space:pre-line; text-align:right; vertical-align: top; min-width: 82px;">
+            <td style="height:227px; padding-top:20px; overflow:hidden; white-space:pre-line; text-align:right; vertical-align: top; min-width: 82px;">
                     {{ number_format($receipt->amount,2) }}
             </td>
         </tr>
@@ -108,7 +108,7 @@
         <!-- PAYMENT METHOD -->
         {{-- Payment method: 1 = Cash, 2 = Check, 3 = Money Order — only the selected one shows X --}}
         <tr>
-            <td colspan="4" style="height:15px;">{{ $receipt->payment_method === 'Cash' ? 'X' : '' }}</td>
+            <td colspan="4" style="height:12px;">{{ $receipt->payment_method === 'Cash' ? 'X' : '' }}</td>
         </tr>
         <tr>
             <td style="height:15px; vertical-align: top;">{{ $receipt->payment_method === 'Check' ? 'X' : '' }}</td>
