@@ -77,7 +77,7 @@
             }
         @endphp
         <tr>
-            <td style="font-size: 15px; height:227px; padding-top:18px; overflow:hidden; vertical-align: top; white-space: pre-line; max-width: 205px;">
+            <td style="height:227px; padding-top:18px; overflow:hidden; vertical-align: top; white-space: pre-line; max-width: 205px;">
                 @if(count($natureLines))
                     {{ implode("\n", $natureLines) }}
                 @else 
