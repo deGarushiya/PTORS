@@ -12,12 +12,21 @@ class DatabaseSeeder extends Seeder
 
     /**
      * Seed the application's database.
+     * Run after: php artisan migrate:fresh --seed
+     *
+     * Hospital data comes only from HospitalFundAccountsSeeder (base hospitals +
+     * hospital_trust_accounts with DM/PF/account_code + hospital_general_accounts).
+     * HospitalSeeder, HospitalAccountSeeder, GeneralFundHospitalSeeder are legacy
+     * and are NOT called here.
      */
     public function run(): void
     {
         $this->call(OfficeSeeder::class);
         $this->call(ParticularSeeder::class);
         $this->call(BankSeeder::class);
+        if (\Illuminate\Support\Facades\Schema::hasTable('bank_branches')) {
+            $this->call(BankBranchSeeder::class);
+        }
         if (\Illuminate\Support\Facades\Schema::hasTable('payors')) {
             $this->call(PayorSeeder::class);
         }

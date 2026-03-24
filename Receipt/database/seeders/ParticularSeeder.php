@@ -16,6 +16,8 @@ class ParticularSeeder extends Seeder
             ['name' => 'Payment of 25% Government LGU Share', 'modal_type' => null, 'sort_order' => 4],
             ['name' => 'Refund of Unexpected Cash Advance', 'modal_type' => null, 'sort_order' => 5],
             ['name' => 'Maip', 'modal_type' => null, 'sort_order' => 6],
+            ['name' => 'Trust Fund - Drugs and Medicines', 'modal_type' => 'trust', 'sort_order' => 7],
+            ['name' => 'General Fund', 'modal_type' => 'general', 'sort_order' => 8],
         ];
 
         foreach ($defaults as $item) {
