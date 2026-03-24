@@ -1115,11 +1115,11 @@ function formatNumberReceipt(num) {
 }
 
 function populateSettlementToReceipt() {
-    // Tweak these to align amounts after labels (manual spacing for print/layout)
-    var SETTLEMENT_GAP_CASH_ADVANCE = '48px';
-    var SETTLEMENT_GAP_TOTAL_RCD = '48px';
-    var SETTLEMENT_GAP_CASH_REFUND = '48px';
-    var SETTLEMENT_GAP_RCD_LINE = '24px'; // space between "RCD n:" and amount
+    var PRINT_NBSP_CASH_ADVANCE = 10;
+    var PRINT_NBSP_TOTAL_RCD = 10;
+    var PRINT_NBSP_CASH_REFUND = 8;
+    var PRINT_NBSP_RCD = 6;
+    var nbsp = function(n) { return new Array(Math.max(0, n) + 1).join('\u00A0'); };
 
     var settlementTotalInput = document.getElementById('settlementTotalInput');
     var cashAdvanceInput = document.getElementById('cashAdvanceInput');
@@ -1134,18 +1134,18 @@ function populateSettlementToReceipt() {
     var rcdInputs = rcdContainer ? rcdContainer.querySelectorAll('input.rcd-amount') : [];
     var rows = '';
     rows += '<div class="row row-cols-3"><div class="col" style="padding: 10px; text-align: left;">Settlement of Cash Advance</div><div class="col" style="padding: 10px; text-align: left;"></div><div class="col" style="padding: 10px; text-align: right;">P <input type="number" step="0.01" min="0" name="amount" id="receiptAmountInput" value="' + totalNum + '" style="width: 90%; text-align: right;" required></div></div>';
-    rows += '<div class="row"><div class="col-12" style="padding: 10px; text-align: left;">Cash Advance:<span style="display: inline-block; padding-left: ' + SETTLEMENT_GAP_CASH_ADVANCE + ';">' + formatNumberReceipt(cashAdvanceNum) + '</span></div></div>';
+    rows += '<div class="row settlement-print-line"><div class="col-12" style="padding: 10px; text-align: left;">Cash Advance:' + nbsp(PRINT_NBSP_CASH_ADVANCE) + formatNumberReceipt(cashAdvanceNum) + '</div></div>';
     for (var i = 0; i < rcdInputs.length; i++) {
         var rcdVal = parseFloat(rcdInputs[i].value) || 0;
-        rows += '<div class="row"><div class="col-12" style="padding: 10px; text-align: left;">RCD ' + (i + 1) + ':<span style="display: inline-block; padding-left: ' + SETTLEMENT_GAP_RCD_LINE + ';">' + formatNumberReceipt(rcdVal) + '</span></div></div>';
+        rows += '<div class="row settlement-print-line"><div class="col-12" style="padding: 10px; text-align: left;">RCD ' + (i + 1) + ':' + nbsp(PRINT_NBSP_RCD) + formatNumberReceipt(rcdVal) + '</div></div>';
     }
     var rcdSum = 0;
     for (var j = 0; j < rcdInputs.length; j++) {
         rcdSum += parseFloat(rcdInputs[j].value) || 0;
     }
     var cashRefundNum = cashAdvanceNum - rcdSum;
-    rows += '<div class="row"><div class="col-12" style="padding: 10px; text-align: left;">Total RCD:<span style="display: inline-block; padding-left: ' + SETTLEMENT_GAP_TOTAL_RCD + ';">' + formatNumberReceipt(rcdSum) + '</span></div></div>';
-    rows += '<div class="row"><div class="col-12" style="padding: 10px; text-align: left;">Cash Refund:<span style="display: inline-block; padding-left: ' + SETTLEMENT_GAP_CASH_REFUND + ';">' + formatNumberReceipt(cashRefundNum) + '</span></div></div>';
+    rows += '<div class="row settlement-print-line"><div class="col-12" style="padding: 10px; text-align: left;">Total RCD:' + nbsp(PRINT_NBSP_TOTAL_RCD) + formatNumberReceipt(rcdSum) + '</div></div>';
+    rows += '<div class="row settlement-print-line"><div class="col-12" style="padding: 10px; text-align: left;">Cash Refund:' + nbsp(PRINT_NBSP_CASH_REFUND) + formatNumberReceipt(cashRefundNum) + '</div></div>';
     receiptNatureRows.innerHTML = rows;
     if (totalAmountDisplay) totalAmountDisplay.textContent = formatNumberReceipt(totalNum);
     if (typeof updateAmountInWords === 'function') updateAmountInWords();
@@ -1242,10 +1242,18 @@ function populateSimpleToReceipt(optParticularName, optAmountStr) {
         var receiptNatureRows = document.getElementById('receiptNatureRows');
         var input = document.getElementById('natureOfCollectionInput');
         if (!receiptNatureRows || !input) return;
-        var rows = receiptNatureRows.querySelectorAll('.row.row-cols-3');
+        var allRows = receiptNatureRows.querySelectorAll(':scope > .row');
         var lines = [];
-        for (var i = 0; i < rows.length; i++) {
-            var cols = rows[i].querySelectorAll('.col');
+        for (var i = 0; i < allRows.length; i++) {
+            var row = allRows[i];
+            var col12 = row.querySelector('.col-12');
+            if (col12) {
+                var oneLine = (col12.innerText || col12.textContent || '').replace(/\r\n/g, '\n').trim();
+                if (oneLine) lines.push(oneLine);
+                continue;
+            }
+            if (!row.classList.contains('row-cols-3')) continue;
+            var cols = row.querySelectorAll('.col');
             if (cols.length >= 2) {
                 var col1 = (cols[0].innerText || cols[0].textContent || '').trim().replace(/\s+/g, ' ');
                 var col2 = (cols[1].innerText || cols[1].textContent || '').trim().replace(/\s+/g, ' ');
