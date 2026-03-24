@@ -49,7 +49,7 @@
         </tr>
 
         <tr>
-            <td style="height:26px;"></td>
+            <td colspan="2" style="height:26px;"></td>
         </tr>
         <!-- <tr>
             <td style="padding-top: 15px;">
@@ -77,31 +77,30 @@
             }
         @endphp
         <tr>
-            <td style="font-size: 15px; height:227px; padding-top:18px; overflow:hidden; vertical-align: top; white-space:pre-wrap;">
+            <td style="font-size: 15px; height:227px; padding-top:18px; overflow:hidden; vertical-align: top; white-space: pre-line; max-width: 205px;">
                 @if(count($natureLines))
                     {{ implode("\n", $natureLines) }}
                 @else 
                     Nature of collection 
                 @endif
             </td>
-            <td style="height:227px; padding-top:25px; overflow:hidden; vertical-align: top; white-space:pre-line;">
+            <!-- <td style="height:227px; padding-top:25px; overflow:hidden; vertical-align: top; white-space:pre-line;">
                 @if(count($accountLines))
                     {{ implode("\n", $accountLines) }}
                 @else 
                     Account Code 
                 @endif
-            </td>
-            <td style="height:227px; padding-top:20px; overflow:hidden; white-space:pre-line; text-align:right; vertical-align: top; min-width: 82px;">
+            </td> -->
+            <td style="height:227px; padding-top:20px; overflow:hidden; white-space:pre-line; text-align:right; vertical-align: top; min-width: 80px;">
                     {{ number_format($receipt->amount,2) }}
             </td>
         </tr>
         <tr>
             <td></td>
-            <td></td>
             <td style="text-align: right;">{{ number_format($receipt->amount,2) }}</td>
         </tr>
         <tr>
-            <td colspan="3" style="height:50px;">{{ $amountInWords ?? 'Zero and 00/100 pesos only' }}</td>
+            <td colspan="2" style="height:50px;">{{ $amountInWords ?? 'Zero and 00/100 pesos only' }}</td>
         </tr>
     </table>
     <table>
